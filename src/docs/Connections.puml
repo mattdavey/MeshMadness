@@ -1,0 +1,18 @@
+@startuml
+
+== Login ==
+actor User1
+participant Sales1
+participant Sales2
+boundary SBP1
+boundary SBP2
+control SBP1_FSM
+control SBP2_FSM
+User1 --> SBP1: Login
+Sales1 --> SBP1: Login
+Sales2 --> SBP2: Login
+
+== Initiate RFQ ==
+User1 --> SBP1: Request RFQ
+
+@enduml
