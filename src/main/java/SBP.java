@@ -38,10 +38,10 @@ public class SBP implements Runnable {
         rfqQueue.add(rfq);
     }
 
-    public void sendToAllSales(final RFQ rfq) {
+    public void sendToAllSales(final RFQ rfq, final RFQStateManager.RFQState state) {
         System.out.println(String.format("%d (%s) Notify all sales people RFQ%s", System.nanoTime(), name, rfq.getRFQId()));
         for (final SalesPerson salesPerson : getSalesPersons()) {
-            salesPerson.SalesPersonCommunication(rfq);
+            salesPerson.SalesPersonCommunication(rfq, state);
         }
     }
 
@@ -66,7 +66,7 @@ public class SBP implements Runnable {
         System.out.println(String.format("%d (%s) Received from Mesh: RFQ%s %s from %s %s", System.nanoTime(), name, meshPayload.getRFQId(), meshPayload.getState(), meshPayload.getSource().getName(), meshPayload.getTime()));
 
         if (!workingRFQs.containsKey(meshPayload.getRFQ().getRFQId())) {
-            System.out.println(String.format("%d (%s) %s InitialRequest RFQ%s", System.nanoTime(), name, meshPayload.getRFQ().getUsername(), meshPayload.getRFQ().getRFQId()));
+            System.out.println(String.format("%d (%s) Adding to RFQManager: %s InitialRequest RFQ%s", System.nanoTime(), name, meshPayload.getRFQ().getUsername(), meshPayload.getRFQ().getRFQId()));
 
             final RFQStateManager rfqStateManager = new RFQStateManager(this, meshPayload.getRFQ());
             notifyMesh(meshPayload.getRFQ(), rfqStateManager.getCurrentState(), rfqStateManager.getCurrentStateTime());
