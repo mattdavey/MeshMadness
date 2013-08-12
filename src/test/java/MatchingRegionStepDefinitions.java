@@ -12,11 +12,13 @@ public class MatchingRegionStepDefinitions {
     class CountRegionRow {
         private int count;
         private String region;
+        private String state;
     }
 
     class RoleRegionRow {
         private String role;
         private String region;
+        private String dialog;
     }
 
     class Holder<T> {
@@ -37,9 +39,9 @@ public class MatchingRegionStepDefinitions {
 
     @Given("^the following users are logged in$")
     public void the_following_users_are_logged_in(DataTable roles) throws Throwable {
-        final List<RoleRegionRow> roleRows = roles.asList(RoleRegionRow.class);
-        for (RoleRegionRow roleRow : roleRows) {
-            final String sbp = roleRow.region;
+        final List<RoleRegionRow> rows = roles.asList(RoleRegionRow.class);
+        for (RoleRegionRow row : rows) {
+            final String sbp = row.region;
 
             // Check for SBP
             if (!sbps.containsKey(sbp)) {
@@ -51,17 +53,17 @@ public class MatchingRegionStepDefinitions {
             }
 
             // Add User
-            if (roleRow.role.startsWith("User")) {
-                final User user = new User(roleRow.role);
-                users.put(roleRow.role, user);
-                sbps.get(roleRow.region).item.login(user);
+            if (row.role.startsWith("User")) {
+                final User user = new User(row.role);
+                users.put(row.role, user);
+                sbps.get(row.region).item.login(user);
             } else {
-                final SalesPerson salesPerson1 = new SalesPerson(roleRow.role, sbps.get(roleRow.region).item);
+                final SalesPerson salesPerson1 = new SalesPerson(row.role, sbps.get(row.region).item, row.dialog);
                 final Thread salesPerson1Thread = new Thread(salesPerson1);
-                sales.put(roleRow.role, new Holder<SalesPerson>(salesPerson1, salesPerson1Thread));
+                sales.put(row.role, new Holder<SalesPerson>(salesPerson1, salesPerson1Thread));
                 salesPerson1Thread.setDaemon(true);
                 salesPerson1Thread.start();
-                sbps.get(roleRow.region).item.registerSalesPerson(salesPerson1);
+                sbps.get(row.region).item.registerSalesPerson(salesPerson1);
             }
         }
 
@@ -90,6 +92,7 @@ public class MatchingRegionStepDefinitions {
         for (CountRegionRow row : rows) {
             final Holder<SBP> sbp = sbps.get(row.region);
             assertEquals(row.count, sbp.item.getWorkingRFQCount());
+            assertEquals(row.state, sbp.item.getRFQState(row.count));
         }
     }
 }

@@ -17,8 +17,8 @@ public class Program
         sbp2Thread.start();
 
         // Connect one salesperson per region
-        final SalesPerson salesPerson1 = new SalesPerson("Sales1", sbp1);
-        final SalesPerson salesPerson2 = new SalesPerson("Sales2", sbp2);
+        final SalesPerson salesPerson1 = new SalesPerson("Sales1", sbp1, "Putback, Putback, Quote, Quote, Quote");
+        final SalesPerson salesPerson2 = new SalesPerson("Sales2", sbp2, "Putback, Quote, Quote, Quote");
         final Thread salesPerson1Thread = new Thread(salesPerson1);
         final Thread salesPerson2Thread = new Thread(salesPerson2);
         salesPerson1Thread.setDaemon(true);

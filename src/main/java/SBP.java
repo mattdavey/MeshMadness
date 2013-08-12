@@ -108,4 +108,8 @@ public class SBP implements Runnable {
     public void notfyRegion(final SBP source, final RFQ rfq, final RFQStateManager.RFQState state, long time) {
         source.MeshCommunications(new MeshPayload(rfq, state, this, time));
     }
+
+    public String getRFQState(final int count) {
+        return workingRFQs.get(count).getCurrentState().toString();
+    }
 }

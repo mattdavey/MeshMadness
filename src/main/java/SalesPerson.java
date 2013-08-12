@@ -8,10 +8,12 @@ public class SalesPerson implements Runnable {
 
     private final String name;
     private final SBP sbp;
+    private final String[] dialog;
 
-    public SalesPerson(final String name, final SBP sbp) {
+    public SalesPerson(final String name, final SBP sbp, final String dialog) {
         this.name = name;
         this.sbp = sbp;
+        this.dialog = dialog.split(",");
     }
 
     // Auto pickup any RFQ that is not complete
@@ -26,17 +28,29 @@ public class SalesPerson implements Runnable {
     }
 
     public void run() {
+        int dialogCount = 0;
         while(true){
             try {
                 final RFQ rfq = rfqQueue.take();
-                Thread.sleep(1000);  //Slow things down
+//                Thread.sleep(1000);  //Slow things down
 
-                switch (randomGenerator.nextInt(2)) {
-                    case 0:
+//                switch (randomGenerator.nextInt(2)) {
+//                    case 0:
+//                        System.out.println(String.format("%d %s Putback RFQ%s", System.nanoTime(), name, rfq.getRFQId()));
+//                        sbp.send(new LocalPayload(rfq.getRFQId(), RFQStateManager.RFQState.Putback, sbp));
+//                        break;
+//                    case 1:
+//                        final double price = randomGenerator.nextInt(120);
+//                        System.out.println(String.format("%d %s SendPrice %s RFQ%s", System.nanoTime(), name, price, rfq.getRFQId()));
+//                        sbp.send(new LocalPayload(rfq.getRFQId(), RFQStateManager.RFQState.SendPrice, sbp, price));
+//                        break;
+//                }
+                switch (dialog[dialogCount++].trim()) {
+                    case "Putback":
                         System.out.println(String.format("%d %s Putback RFQ%s", System.nanoTime(), name, rfq.getRFQId()));
                         sbp.send(new LocalPayload(rfq.getRFQId(), RFQStateManager.RFQState.Putback, sbp));
                         break;
-                    case 1:
+                    case "Quote":
                         final double price = randomGenerator.nextInt(120);
                         System.out.println(String.format("%d %s SendPrice %s RFQ%s", System.nanoTime(), name, price, rfq.getRFQId()));
                         sbp.send(new LocalPayload(rfq.getRFQId(), RFQStateManager.RFQState.SendPrice, sbp, price));
