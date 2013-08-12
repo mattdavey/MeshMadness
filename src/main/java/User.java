@@ -8,7 +8,6 @@ public class User {
 
     public void price(final double price) {
         System.out.println(String.format("%d %s %s", System.nanoTime(), name, price));
-        System.exit(0);
     }
 
     public String getName() {

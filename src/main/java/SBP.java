@@ -22,6 +22,10 @@ public class SBP implements Runnable {
         mesh.add(sbp);
     }
 
+    public int getWorkingRFQCount() {
+        return workingRFQs.size();
+    }
+
     public void registerSalesPerson(final SalesPerson salesPerson) {
         assert this.salesPerson.contains(salesPerson);
         this.salesPerson.add(salesPerson);

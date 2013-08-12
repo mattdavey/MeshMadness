@@ -29,11 +29,14 @@ public class Program
         sbp2.registerSalesPerson(salesPerson2);
 
         // login user to a single region
-        final User user = new User("User1");
-        sbp1.login(user);
+        final User user1 = new User("User1");
+        sbp1.login(user1);
+        final User user2 = new User("User2");
+        sbp2.login(user2);
 
         // Request price
-        sbp1.clientIncomingCommunication(new RFQ(user, 1, sbp1));
+        sbp1.clientIncomingCommunication(new RFQ(user1, 1, sbp1));
+        sbp2.clientIncomingCommunication(new RFQ(user2, 2, sbp2));
 
         try {
             System.in.read();

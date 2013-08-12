@@ -29,7 +29,7 @@ public class SalesPerson implements Runnable {
         while(true){
             try {
                 final RFQ rfq = rfqQueue.take();
-                Thread.sleep(3000);  //Slow things down
+                Thread.sleep(1000);  //Slow things down
 
                 switch (randomGenerator.nextInt(2)) {
                     case 0:

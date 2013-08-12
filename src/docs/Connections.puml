@@ -14,5 +14,4 @@ Sales2 --> SBP2: Login
 
 == Initiate RFQ ==
 User1 --> SBP1: Request RFQ
-
 @enduml
