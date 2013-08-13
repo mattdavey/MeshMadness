@@ -1,10 +1,10 @@
 
 public class RFQStateManager {
-    public enum RFQState {InitialRequest, SendToSales, Pickup, Locked, SendPrice, Putback, Complete};
+    public enum RFQState {StartRFQ, SendToDI, Pickup, Locked, Quote, Putback, Complete};
 
     private final SBP sbp;
     private final RFQ rfq;
-    private RFQState currentState=RFQState.InitialRequest;
+    private RFQState currentState=RFQState.StartRFQ;
     private long currentStateTime =System.nanoTime();
     private SBP whoLocked = null;
 
@@ -17,10 +17,10 @@ public class RFQStateManager {
     }
 
     public synchronized void NextState(final Payload payload) {
-        if (currentState == RFQState.InitialRequest) {
+        if (currentState == RFQState.StartRFQ) {
             // Send to all sales people
 
-            currentState = RFQState.SendToSales;
+            currentState = RFQState.SendToDI;
 
             sbp.sendToAllSales(rfq, currentState);
             return;
@@ -31,11 +31,11 @@ public class RFQStateManager {
                 if (rfq.getSource() == whoLocked && salesPersonModification.getState() == RFQState.Putback) {
                     System.out.println(String.format("%d (%s) %s RFQ%s Unlock %s %s", System.nanoTime(), sbp.getName(),
                             rfq.getUsername(), rfq.getRFQId(), salesPersonModification.getState(), rfq.getSource().getName()));
-                    currentState = RFQState.SendToSales;
+                    currentState = RFQState.SendToDI;
                     currentStateTime = System.nanoTime();
                     whoLocked = null;
                     sbp.sendToAllSales(rfq, currentState);
-                } else if (rfq.getSource() == whoLocked && salesPersonModification.getState() == RFQState.SendPrice) {
+                } else if (rfq.getSource() == whoLocked && salesPersonModification.getState() == RFQState.Quote) {
                     currentState = RFQState.Complete;
                     currentStateTime = System.nanoTime();
                     whoLocked = null;
@@ -55,7 +55,7 @@ public class RFQStateManager {
                         sbp.notifyMesh(rfq, currentState, currentStateTime);
                         break;
                     case Putback:
-                        currentState = RFQState.SendToSales;
+                        currentState = RFQState.SendToDI;
                         currentStateTime =System.nanoTime();
                         System.out.println(String.format("%d (%s) RFQ%s %s %s", System.nanoTime(), sbp.getName(),
                                 rfq.getRFQId(), currentState, currentStateTime));
@@ -67,8 +67,8 @@ public class RFQStateManager {
                             whoLocked = null;
                         }
                         break;
-                    case SendPrice:
-                        currentState = RFQState.SendPrice;
+                    case Quote:
+                        currentState = RFQState.Quote;
                         currentStateTime =System.nanoTime();
                         System.out.println(String.format("%d (%s) RFQ%s %s %s", System.nanoTime(), sbp.getName(),
                                 rfq.getRFQId(), currentState, currentStateTime));

@@ -11,8 +11,8 @@ Feature: Submit an RFQ by users
     | Role  | Region |
     | User1 | SBP1   |
     Then the FSM looks like:
-    | Count | Region | State       |
-    | 1     | SBP1   | SendToSales |
+    | Count | Region | State    |
+    | 1     | SBP1   | SendToDI |
 
   Scenario: Two user's connected to a region and submits RFQ's
     Given the following users are logged in
@@ -24,8 +24,8 @@ Feature: Submit an RFQ by users
     | User1 | SBP1   |
     | User2 | SBP1   |
     Then the FSM looks like:
-    | Count | Region | State       |
-    | 2     | SBP1   | SendToSales |
+    | Count | Region | State    |
+    | 2     | SBP1   | SendToDI |
 
   Scenario: Two user's connected to separate region and submits RFQ's
     Given the following users are logged in
@@ -37,6 +37,6 @@ Feature: Submit an RFQ by users
     | User1 | SBP1   |
     | User2 | SBP2   |
     Then the FSM looks like:
-    | Count | Region | State       |
-    | 2     | SBP1   | SendToSales |
-    | 2     | SBP2   | SendToSales |
+    | Count | Region | State    |
+    | 2     | SBP1   | SendToDI |
+    | 2     | SBP2   | SendToDI |

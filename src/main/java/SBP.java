@@ -1,14 +1,32 @@
+import rx.*;
+import rx.Observable;
+import rx.subjects.*;
+
 import java.util.*;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 public class SBP implements Runnable {
+    final private String name;
     final private List<SBP> mesh = new ArrayList<SBP>();
     final private List<User> users = new ArrayList<User>();
     final private List<SalesPerson> salesPerson = new ArrayList<SalesPerson>();
     final private BlockingQueue<Payload> rfqQueue = new LinkedBlockingQueue<Payload>();
     final private Map<Integer, RFQStateManager> workingRFQs = new HashMap<Integer, RFQStateManager>();
-    final private String name;
+
+    public class RFQSubjectHolder {
+        public final int id;
+        public final RFQStateManager.RFQState state;
+
+        public RFQSubjectHolder(final int rfqId, final RFQStateManager.RFQState state) {
+            this.id = rfqId;
+            this.state = state;
+        }
+    }
+    private ReplaySubject<RFQSubjectHolder> subjectRFQSubjectHolder = ReplaySubject.create();
+    public Observable<RFQSubjectHolder> subscribe() {
+        return subjectRFQSubjectHolder;
+    }
 
     public SBP(String name) {
         this.name = name;
@@ -57,6 +75,7 @@ public class SBP implements Runnable {
                 final RFQStateManager rfqStateManager = workingRFQs.get(rfq.getRFQId());
                 if (rfqStateManager != null) {
                     rfqStateManager.NextState(rfq);
+                    subjectRFQSubjectHolder.onNext(new RFQSubjectHolder(rfq.getRFQId(), rfqStateManager.getCurrentState()));
                 } else {
                     new RuntimeException("Unregistered RFQ id");
                 }
@@ -70,7 +89,7 @@ public class SBP implements Runnable {
         System.out.println(String.format("%d (%s) Received from Mesh: RFQ%s %s from %s %s", System.nanoTime(), name, meshPayload.getRFQId(), meshPayload.getState(), meshPayload.getSource().getName(), meshPayload.getTime()));
 
         if (!workingRFQs.containsKey(meshPayload.getRFQ().getRFQId())) {
-            System.out.println(String.format("%d (%s) Adding to RFQManager: %s InitialRequest RFQ%s", System.nanoTime(), name, meshPayload.getRFQ().getUsername(), meshPayload.getRFQ().getRFQId()));
+            System.out.println(String.format("%d (%s) Adding to RFQManager: %s StartRFQ RFQ%s", System.nanoTime(), name, meshPayload.getRFQ().getUsername(), meshPayload.getRFQ().getRFQId()));
 
             final RFQStateManager rfqStateManager = new RFQStateManager(this, meshPayload.getRFQ());
             notifyMesh(meshPayload.getRFQ(), rfqStateManager.getCurrentState(), rfqStateManager.getCurrentStateTime());
