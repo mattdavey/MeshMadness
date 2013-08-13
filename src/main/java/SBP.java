@@ -1,5 +1,6 @@
 import rx.*;
 import rx.Observable;
+import rx.concurrency.ExecutorScheduler;
 import rx.subjects.*;
 
 import java.util.*;

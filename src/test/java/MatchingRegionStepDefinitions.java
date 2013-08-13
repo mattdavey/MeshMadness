@@ -1,3 +1,4 @@
+import com.google.common.util.concurrent.AbstractScheduledService;
 import cucumber.annotation.en.Given;
 import cucumber.annotation.en.Then;
 import cucumber.annotation.en.When;
@@ -45,7 +46,7 @@ public class MatchingRegionStepDefinitions {
     @Given("^the following users are logged in$")
     public void the_following_users_are_logged_in(DataTable roles) throws Throwable {
         final List<RoleRegionRow> rows = roles.asList(RoleRegionRow.class);
-        for (RoleRegionRow row : rows) {
+        for (final RoleRegionRow row : rows) {
             final String sbp = row.region;
 
             // Check for SBP
@@ -72,8 +73,8 @@ public class MatchingRegionStepDefinitions {
             }
         }
 
-        for (Holder<SBP> sbp : sbps.values()) {
-            for (Holder<SBP> sbpAgain : sbps.values()) {
+        for (final Holder<SBP> sbp : sbps.values()) {
+            for (final Holder<SBP> sbpAgain : sbps.values()) {
                 if (sbp.item != sbpAgain.item) {
                     sbp.item.join(sbpAgain.item);
                 }
@@ -85,7 +86,7 @@ public class MatchingRegionStepDefinitions {
     public void users_submit_messages_as_follows(DataTable messages) throws Throwable {
         final List<RoleRegionRow> rows = messages.asList(RoleRegionRow.class);
         int rfqId = 0;
-        for (RoleRegionRow row : rows) {
+        for (final RoleRegionRow row : rows) {
             final SBP sbp = sbps.get(row.region).item;
             sbp.clientIncomingCommunication(new RFQ(users.get(row.role), ++rfqId, sbp));
         }
@@ -122,8 +123,6 @@ public class MatchingRegionStepDefinitions {
             });
 
             assertEquals(row.count, sbp.item.getWorkingRFQCount());
-
-//            assertEquals(row.state, sbp.item.getRFQState(row.count));
         }
 
         // wait for the above to finish or blow up if it's blocked
