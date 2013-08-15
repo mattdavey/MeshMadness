@@ -1,3 +1,7 @@
+package meshmadness.messaging;
+
+import meshmadness.RFQStateManager;
+import meshmadness.SBP;
 
 public class LocalPayload implements Payload {
     private final int rfqId;

@@ -1,3 +1,8 @@
+package meshmadness;
+
+import meshmadness.messaging.LocalPayload;
+import meshmadness.messaging.MeshPayload;
+import meshmadness.messaging.Payload;
 
 public class RFQStateManager {
     public enum RFQState {StartRFQ, SendToDI, Pickup, Locked, Quote, Putback, Complete};
@@ -12,7 +17,7 @@ public class RFQStateManager {
         this.sbp = sbp;
         this.rfq = rfq;
 
-//        System.out.println(String.format("%d (%s) RFQStateManager Constructor for %s RFQ%s %s %s", System.nanoTime(), sbp.getName(),
+//        System.out.println(String.format("%d (%s) meshmadness.RFQStateManager Constructor for %s meshmadness.RFQ%s %s %s", System.nanoTime(), sbp.getName(),
 //                rfq.getUsername(), rfq.getRFQId(), currentState, currentStateTime));
     }
 

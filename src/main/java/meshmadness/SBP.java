@@ -1,6 +1,11 @@
-import rx.*;
+package meshmadness;
+
+import meshmadness.actors.SalesPerson;
+import meshmadness.actors.User;
+import meshmadness.messaging.LocalPayload;
+import meshmadness.messaging.MeshPayload;
+import meshmadness.messaging.Payload;
 import rx.Observable;
-import rx.concurrency.ExecutorScheduler;
 import rx.subjects.*;
 
 import java.util.*;

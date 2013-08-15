@@ -1,9 +1,12 @@
+package meshmadness.actors;
+
+import meshmadness.SBP;
 
 public class User {
     private final String name;
     private final SBP sbp;
 
-    public User(final String name, SBP sbp) {
+    public User(final String name, final SBP sbp) {
         this.name = name;
         this.sbp = sbp;
     }

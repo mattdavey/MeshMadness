@@ -12,6 +12,6 @@ User1 --> SBP1: Login
 Sales1 --> SBP1: Login
 Sales2 --> SBP2: Login
 
-== Initiate RFQ ==
-User1 --> SBP1: Request RFQ
+== Initiate meshmadness.RFQ ==
+User1 --> SBP1: Request meshmadness.RFQ
 @enduml

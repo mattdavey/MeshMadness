@@ -2,6 +2,10 @@ import cucumber.annotation.en.Given;
 import cucumber.annotation.en.Then;
 import cucumber.annotation.en.When;
 import cucumber.table.DataTable;
+import meshmadness.*;
+import meshmadness.SBP;
+import meshmadness.actors.SalesPerson;
+import meshmadness.actors.User;
 import rx.Subscription;
 import rx.util.functions.Action1;
 import rx.util.functions.Func1;
@@ -61,7 +65,7 @@ public class MatchingRegionStepDefinitions {
                 sbp1Thread.start();
             }
 
-            // Add User
+            // Add actors.User
             if (row.role.startsWith("User")) {
                 final User user = new User(row.role, sbps.get(sbp).item);
                 users.put(row.role, user);

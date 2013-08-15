@@ -1,9 +1,9 @@
-Feature: Submit an RFQ by users with sales in two regions
+Feature: Submit an meshmadness.RFQ by users with sales in two regions
 
   Background:
-    Propagation of an RFQ between two regions with sale people connected
+    Propagation of an meshmadness.RFQ between two regions with sale people connected
 
-  Scenario: A user connected to a region that has a sales and submits an RFQ and gets a quote
+  Scenario: A user connected to a region that has a sales and submits an meshmadness.RFQ and gets a quote
     Given the following users are logged in
     | Role   | Region |
     | User1  | SBP1   |
@@ -17,8 +17,7 @@ Feature: Submit an RFQ by users with sales in two regions
     | Count | Region | State |
     | 1     | SBP2   | Quote |
 
-@focus
-  Scenario: A user connected to a region that has a sales and submits an RFQ and receives no quote
+  Scenario: A user connected to a region that has a sales and submits an meshmadness.RFQ and receives no quote
     Given the following users are logged in
     | Role   | Region |
     | User1  | SBP1   |
@@ -32,7 +31,7 @@ Feature: Submit an RFQ by users with sales in two regions
     | Count | Region | State   |
     | 1     | SBP2   | SendToDI|
 
-  Scenario: A user connected to a region that has two sales and submits an RFQ with no quote received back
+  Scenario: A user connected to a region that has two sales and submits an meshmadness.RFQ with no quote received back
     Given the following users are logged in
     | Role   | Region |
     | User1  | SBP1   |
@@ -47,7 +46,7 @@ Feature: Submit an RFQ by users with sales in two regions
     | Count | Region | State   |
     | 1     | SBP1   | SendToDI|
 
-  Scenario: A user connected to a region that has two sales and submits an RFQ and gets a quote back
+  Scenario: A user connected to a region that has two sales and submits an meshmadness.RFQ and gets a quote back
     Given the following users are logged in
     | Role   | Region |
     | User1  | SBP1   |

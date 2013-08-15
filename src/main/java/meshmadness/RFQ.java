@@ -1,3 +1,7 @@
+package meshmadness;
+
+import meshmadness.actors.User;
+import meshmadness.messaging.Payload;
 
 public class RFQ implements Cloneable, Payload {
     private final User user;

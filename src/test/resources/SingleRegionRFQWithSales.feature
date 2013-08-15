@@ -16,7 +16,6 @@ Feature: User submit an RFQ into a single region that is actioned by sales
     | Count | Region | State |
     | 1     | SBP1   | Quote |
 
-@focus
   Scenario: A user connected to a region that has a sales and submits an RFQ and receives no quote
     Given the following users are logged in
     | Role   | Region |
