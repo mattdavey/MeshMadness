@@ -14,8 +14,8 @@ import java.util.concurrent.LinkedBlockingQueue;
 
 public class SBP implements Runnable {
     final private String name;
-    final private List<SBP> mesh = new ArrayList<SBP>();
-    final private List<User> users = new ArrayList<User>();
+    final private List<SBP> mesh = new ArrayList<>();
+    final private List<User> users = new ArrayList<>();
     final private List<SalesPerson> salesPerson = new ArrayList<SalesPerson>();
     final private BlockingQueue<Payload> rfqQueue = new LinkedBlockingQueue<Payload>();
     final private Map<Integer, RFQStateManager> workingRFQs = new HashMap<Integer, RFQStateManager>();
@@ -132,9 +132,5 @@ public class SBP implements Runnable {
 
     public void notfyRegion(final SBP source, final RFQ rfq, final RFQStateManager.RFQState state, long time) {
         source.MeshCommunications(new MeshPayload(rfq, state, this, time));
-    }
-
-    public String getRFQState(final int count) {
-        return workingRFQs.get(count).getCurrentState().toString();
     }
 }

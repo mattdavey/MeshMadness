@@ -7,8 +7,6 @@ public class RFQ implements Cloneable, Payload {
     private final User user;
     private final int id;
     private final SBP source;
-    private double price=0.0;
-    private long time=0;
 
     public RFQ(final User user, final int id, final SBP source) {
         this.user = user;

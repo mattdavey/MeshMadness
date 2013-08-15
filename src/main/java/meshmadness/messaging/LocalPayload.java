@@ -31,8 +31,4 @@ public class LocalPayload implements Payload {
     public double getPrice() {
         return price;
     }
-
-    public SBP getSource() {
-        return source;
-    }
 }

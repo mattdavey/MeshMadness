@@ -18,37 +18,34 @@ import java.util.concurrent.TimeUnit;
 import static junit.framework.Assert.assertEquals;
 
 public class MatchingRegionStepDefinitions {
-    class CountRegionStateRow {
+    private class CountRegionStateRow {
         private int count;
         private String region;
         private String state;
     }
 
-    class RoleRegionRow {
+    private class RoleRegionRow {
         private String role;
         private String region;
     }
 
-    class UserMessageRow {
+    private class UserMessageRow {
         private String role;
         private String message;
     }
 
-    class Holder<T> {
+    private class Holder<T> {
         public Holder(final T item, final Thread thread) {
             this.item = item;
             this.thread = thread;
         }
-        final public T item;
-        final public Thread thread;
+        final private T item;
+        final private Thread thread;
     }
 
     private final HashMap<String, Holder<SBP>> sbps = new HashMap<String, Holder<SBP>>();
     private final HashMap<String, Holder<SalesPerson>> sales = new HashMap<String, Holder<SalesPerson>>();
     private final HashMap<String, User> users = new HashMap<String, User>();
-
-    public MatchingRegionStepDefinitions() {
-    }
 
     @Given("^the following users are logged in$")
     public void the_following_users_are_logged_in(DataTable roles) throws Throwable {
@@ -72,10 +69,7 @@ public class MatchingRegionStepDefinitions {
                 sbps.get(row.region).item.login(user);
             } else {
                 final SalesPerson salesPerson1 = new SalesPerson(row.role, sbps.get(row.region).item);
-//                final Thread salesPerson1Thread = new Thread(salesPerson1);
                 sales.put(row.role, new Holder<>(salesPerson1, null));
-//                salesPerson1Thread.setDaemon(true);
-//                salesPerson1Thread.start();
                 sbps.get(row.region).item.registerSalesPerson(salesPerson1);
             }
         }

@@ -25,9 +25,9 @@ public class SalesPerson {
     final ConnectableObservable<RFQStateManager.RFQState> observableDialog;
     final Subscription sub;
 
-    class ZipHolder {
-        final public RFQ rfq;
-        final public RFQStateManager.RFQState state;
+    private class ZipHolder {
+        final private RFQ rfq;
+        final private RFQStateManager.RFQState state;
 
         public ZipHolder(final RFQ rfq, final RFQStateManager.RFQState state) {
             this.rfq = rfq;
@@ -71,7 +71,6 @@ public class SalesPerson {
     public void SalesPersonCommunication(final RFQ rfq, final RFQStateManager.RFQState state) {
         if (state != RFQStateManager.RFQState.Complete) {
             System.out.println(String.format("%d %s Pickup RFQ%s", System.nanoTime(), name, rfq.getRFQId()));
-//            rfqQueue.add(rfq);
             dealerQueue.onNext(rfq);
             sbp.send(new LocalPayload(rfq.getRFQId(), RFQStateManager.RFQState.Pickup, sbp));
         } else {
