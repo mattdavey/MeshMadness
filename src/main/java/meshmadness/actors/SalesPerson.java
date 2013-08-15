@@ -1,9 +1,11 @@
 package meshmadness.actors;
 
-import meshmadness.RFQ;
-import meshmadness.RFQStateManager;
-import meshmadness.SBP;
+import meshmadness.domain.RFQ;
+import meshmadness.domain.RFQStateManager;
+import meshmadness.domain.SBP;
 import meshmadness.messaging.LocalPayload;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import rx.Observable;
 import rx.Subscription;
 import rx.concurrency.Schedulers;
@@ -15,6 +17,8 @@ import rx.util.functions.Func2;
 import java.util.Random;
 
 public class SalesPerson {
+    final Logger logger = LoggerFactory.getLogger(SalesPerson.class);
+
     final private Random randomGenerator = new Random(System.nanoTime());
     private final ReplaySubject<RFQ> dealerQueue = ReplaySubject.create();
     private final ReplaySubject<RFQStateManager.RFQState> dialog = ReplaySubject.create();
@@ -51,13 +55,13 @@ public class SalesPerson {
             public void call(ZipHolder zipHolder) {
                 switch (zipHolder.state) {
                     case Putback:
-                        System.out.println(String.format("%d %s Putback RFQ%s", System.nanoTime(), name, zipHolder.rfq.getRFQId()));
-                        sbp.send(new LocalPayload(zipHolder.rfq.getRFQId(), RFQStateManager.RFQState.Putback, sbp));
+                        logger.debug(String.format("%d %s Putback RFQ%s", System.nanoTime(), name, zipHolder.rfq.getRFQId()));
+                        sbp.send(new LocalPayload(zipHolder.rfq.getRFQId(), RFQStateManager.RFQState.Putback, sbp, name));
                         break;
                     case Quote:
                         final double price = randomGenerator.nextInt(120);
-                        System.out.println(String.format("%d %s Quote %s RFQ%s", System.nanoTime(), name, price, zipHolder.rfq.getRFQId()));
-                        sbp.send(new LocalPayload(zipHolder.rfq.getRFQId(), RFQStateManager.RFQState.Quote, sbp, price));
+                        logger.debug(String.format("%d %s Quote %s RFQ%s", System.nanoTime(), name, price, zipHolder.rfq.getRFQId()));
+                        sbp.send(new LocalPayload(zipHolder.rfq.getRFQId(), RFQStateManager.RFQState.Quote, sbp, price, name));
                         break;
                 }
             }
@@ -70,11 +74,11 @@ public class SalesPerson {
     // Auto pickup any RFQ that is not complete
     public void SalesPersonCommunication(final RFQ rfq, final RFQStateManager.RFQState state) {
         if (state != RFQStateManager.RFQState.Complete) {
-            System.out.println(String.format("%d %s Pickup RFQ%s", System.nanoTime(), name, rfq.getRFQId()));
+            logger.debug(String.format("%d %s Pickup RFQ%s", System.nanoTime(), name, rfq.getRFQId()));
             dealerQueue.onNext(rfq);
-            sbp.send(new LocalPayload(rfq.getRFQId(), RFQStateManager.RFQState.Pickup, sbp));
+            sbp.send(new LocalPayload(rfq.getRFQId(), RFQStateManager.RFQState.Pickup, sbp, name));
         } else {
-            System.out.println(String.format("%d %s Complete RFQ%s", System.nanoTime(), name, rfq.getRFQId()));
+            logger.debug(String.format("%d %s Complete RFQ%s", System.nanoTime(), name, rfq.getRFQId()));
         }
     }
 

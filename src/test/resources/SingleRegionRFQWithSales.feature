@@ -13,8 +13,8 @@ Feature: User submit an RFQ into a single region that is actioned by sales
     | User1 | StartRFQ|
     | Sales1| Quote   |
     Then the FSM looks like:
-    | Count | Region | State |
-    | 1     | SBP1   | Quote |
+    | Count | Region | State | Filler |
+    | 1     | SBP1   | Quote | Sales1 |
 
   Scenario: A user connected to a region that has a sales and submits an RFQ and receives no quote
     Given the following users are logged in
@@ -55,5 +55,5 @@ Feature: User submit an RFQ into a single region that is actioned by sales
     | User1 | StartRFQ|
     | Sales1| Quote   |
     Then the FSM looks like:
-    | Count | Region | State |
-    | 1     | SBP1   | Quote |
+    | Count | Region | State | Filler|
+    | 1     | SBP1   | Quote | Sales1|

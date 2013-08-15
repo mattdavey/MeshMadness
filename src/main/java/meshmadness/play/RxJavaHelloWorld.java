@@ -1,8 +1,8 @@
 package meshmadness.play;
 
-import meshmadness.RFQ;
-import meshmadness.RFQStateManager;
-import meshmadness.SBP;
+import meshmadness.domain.RFQ;
+import meshmadness.domain.RFQStateManager;
+import meshmadness.domain.SBP;
 import meshmadness.actors.User;
 import rx.Observable;
 import rx.Subscription;

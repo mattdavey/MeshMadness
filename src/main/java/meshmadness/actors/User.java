@@ -1,8 +1,12 @@
 package meshmadness.actors;
 
-import meshmadness.SBP;
+import meshmadness.domain.SBP;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class User {
+    final Logger logger = LoggerFactory.getLogger(SalesPerson.class);
+
     private final String name;
     private final SBP sbp;
 
@@ -12,7 +16,7 @@ public class User {
     }
 
     public void price(final double price) {
-        System.out.println(String.format("%d %s %s", System.nanoTime(), name, price));
+        logger.debug(String.format("%d %s %s", System.nanoTime(), name, price));
     }
 
     public String getName() {

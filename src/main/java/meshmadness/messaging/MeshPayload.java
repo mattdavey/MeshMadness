@@ -1,8 +1,8 @@
 package meshmadness.messaging;
 
-import meshmadness.RFQ;
-import meshmadness.RFQStateManager;
-import meshmadness.SBP;
+import meshmadness.domain.RFQ;
+import meshmadness.domain.RFQStateManager;
+import meshmadness.domain.SBP;
 
 public class MeshPayload implements Payload {
     final private RFQ rfq;

@@ -1,10 +1,12 @@
-package meshmadness;
+package meshmadness.domain;
 
 import meshmadness.actors.SalesPerson;
 import meshmadness.actors.User;
 import meshmadness.messaging.LocalPayload;
 import meshmadness.messaging.MeshPayload;
 import meshmadness.messaging.Payload;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import rx.Observable;
 import rx.subjects.*;
 
@@ -13,6 +15,8 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
 public class SBP implements Runnable {
+    final Logger logger = LoggerFactory.getLogger(SBP.class);
+
     final private String name;
     final private List<SBP> mesh = new ArrayList<>();
     final private List<User> users = new ArrayList<>();
@@ -23,10 +27,12 @@ public class SBP implements Runnable {
     public class RFQSubjectHolder {
         public final int id;
         public final RFQStateManager.RFQState state;
+        public final String fillerName;
 
-        public RFQSubjectHolder(final int rfqId, final RFQStateManager.RFQState state) {
+        public RFQSubjectHolder(final int rfqId, final RFQStateManager.RFQState state, final String fillerName) {
             this.id = rfqId;
             this.state = state;
+            this.fillerName = fillerName;
         }
     }
     private ReplaySubject<RFQSubjectHolder> subjectRFQSubjectHolder = ReplaySubject.create();
@@ -67,7 +73,7 @@ public class SBP implements Runnable {
     }
 
     public void sendToAllSales(final RFQ rfq, final RFQStateManager.RFQState state) {
-        System.out.println(String.format("%d (%s) Notify all sales people RFQ%s", System.nanoTime(), name, rfq.getRFQId()));
+        logger.debug(String.format("%d (%s) Notify all sales people RFQ%s", System.nanoTime(), name, rfq.getRFQId()));
         for (final SalesPerson salesPerson : getSalesPersons()) {
             salesPerson.SalesPersonCommunication(rfq, state);
         }
@@ -81,7 +87,7 @@ public class SBP implements Runnable {
                 final RFQStateManager rfqStateManager = workingRFQs.get(rfq.getRFQId());
                 if (rfqStateManager != null) {
                     rfqStateManager.NextState(rfq);
-                    subjectRFQSubjectHolder.onNext(new RFQSubjectHolder(rfq.getRFQId(), rfqStateManager.getCurrentState()));
+                    subjectRFQSubjectHolder.onNext(new RFQSubjectHolder(rfq.getRFQId(), rfqStateManager.getCurrentState(), rfqStateManager.getFillerName()));
                 } else {
                     new RuntimeException("Unregistered RFQ id");
                 }
@@ -92,10 +98,10 @@ public class SBP implements Runnable {
     }
 
     public void MeshCommunications(final MeshPayload meshPayload) {
-        System.out.println(String.format("%d (%s) Received from Mesh: RFQ%s %s from %s %s", System.nanoTime(), name, meshPayload.getRFQId(), meshPayload.getState(), meshPayload.getSource().getName(), meshPayload.getTime()));
+        logger.debug(String.format("%d (%s) Received from Mesh: RFQ%s %s from %s %s", System.nanoTime(), name, meshPayload.getRFQId(), meshPayload.getState(), meshPayload.getSource().getName(), meshPayload.getTime()));
 
         if (!workingRFQs.containsKey(meshPayload.getRFQ().getRFQId())) {
-            System.out.println(String.format("%d (%s) Adding to RFQManager: %s StartRFQ RFQ%s", System.nanoTime(), name, meshPayload.getRFQ().getUsername(), meshPayload.getRFQ().getRFQId()));
+            logger.debug(String.format("%d (%s) Adding to RFQManager: %s StartRFQ RFQ%s", System.nanoTime(), name, meshPayload.getRFQ().getUsername(), meshPayload.getRFQ().getRFQId()));
 
             final RFQStateManager rfqStateManager = new RFQStateManager(this, meshPayload.getRFQ());
             workingRFQs.put(meshPayload.getRFQ().getRFQId(), rfqStateManager);
@@ -130,7 +136,7 @@ public class SBP implements Runnable {
     }
 
 
-    public void notfyRegion(final SBP source, final RFQ rfq, final RFQStateManager.RFQState state, long time) {
+    public void notifyRegion(final SBP source, final RFQ rfq, final RFQStateManager.RFQState state, long time) {
         source.MeshCommunications(new MeshPayload(rfq, state, this, time));
     }
 }

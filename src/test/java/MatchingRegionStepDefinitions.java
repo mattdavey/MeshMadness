@@ -2,8 +2,9 @@ import cucumber.annotation.en.Given;
 import cucumber.annotation.en.Then;
 import cucumber.annotation.en.When;
 import cucumber.table.DataTable;
-import meshmadness.*;
-import meshmadness.SBP;
+import meshmadness.domain.RFQ;
+import meshmadness.domain.RFQStateManager;
+import meshmadness.domain.SBP;
 import meshmadness.actors.SalesPerson;
 import meshmadness.actors.User;
 import rx.Subscription;
@@ -22,6 +23,7 @@ public class MatchingRegionStepDefinitions {
         private int count;
         private String region;
         private String state;
+        private String filler;
     }
 
     private class RoleRegionRow {
@@ -123,10 +125,15 @@ public class MatchingRegionStepDefinitions {
             subscriptions[rowCount-1] = sbp.item.subscribe().filter(new Func1<SBP.RFQSubjectHolder, Boolean>() {
                 @Override
                 public Boolean call(final SBP.RFQSubjectHolder holder) {
+                    boolean retVal = false;
                     if (holder.state == RFQStateManager.RFQState.valueOf(row.state))
-                        return true;
+                        retVal = true;
 
-                    return false;
+                    if (row.filler != null && holder.fillerName != row.filler)
+                        retVal = false;
+
+
+                    return retVal;
                 }
             }).subscribe(new Action1<SBP.RFQSubjectHolder>() {
                 @Override

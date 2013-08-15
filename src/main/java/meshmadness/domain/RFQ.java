@@ -1,4 +1,4 @@
-package meshmadness;
+package meshmadness.domain;
 
 import meshmadness.actors.User;
 import meshmadness.messaging.Payload;
