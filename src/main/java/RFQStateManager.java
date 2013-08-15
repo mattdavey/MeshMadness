@@ -12,8 +12,8 @@ public class RFQStateManager {
         this.sbp = sbp;
         this.rfq = rfq;
 
-        System.out.println(String.format("%d (%s) RFQStateManager Constructor for %s RFQ%s %s %s", System.nanoTime(), sbp.getName(),
-                rfq.getUsername(), rfq.getRFQId(), currentState, currentStateTime));
+//        System.out.println(String.format("%d (%s) RFQStateManager Constructor for %s RFQ%s %s %s", System.nanoTime(), sbp.getName(),
+//                rfq.getUsername(), rfq.getRFQId(), currentState, currentStateTime));
     }
 
     public synchronized void NextState(final Payload payload) {

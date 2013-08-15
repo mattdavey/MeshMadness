@@ -93,8 +93,8 @@ public class SBP implements Runnable {
             System.out.println(String.format("%d (%s) Adding to RFQManager: %s StartRFQ RFQ%s", System.nanoTime(), name, meshPayload.getRFQ().getUsername(), meshPayload.getRFQ().getRFQId()));
 
             final RFQStateManager rfqStateManager = new RFQStateManager(this, meshPayload.getRFQ());
-            notifyMesh(meshPayload.getRFQ(), rfqStateManager.getCurrentState(), rfqStateManager.getCurrentStateTime());
             workingRFQs.put(meshPayload.getRFQ().getRFQId(), rfqStateManager);
+            notifyMesh(meshPayload.getRFQ(), rfqStateManager.getCurrentState(), rfqStateManager.getCurrentStateTime());
         }
 
         rfqQueue.add(meshPayload);

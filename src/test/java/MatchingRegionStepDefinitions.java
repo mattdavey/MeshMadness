@@ -1,4 +1,3 @@
-import com.google.common.util.concurrent.AbstractScheduledService;
 import cucumber.annotation.en.Given;
 import cucumber.annotation.en.Then;
 import cucumber.annotation.en.When;
@@ -15,7 +14,7 @@ import java.util.concurrent.TimeUnit;
 import static junit.framework.Assert.assertEquals;
 
 public class MatchingRegionStepDefinitions {
-    class CountRegionRow {
+    class CountRegionStateRow {
         private int count;
         private String region;
         private String state;
@@ -24,16 +23,20 @@ public class MatchingRegionStepDefinitions {
     class RoleRegionRow {
         private String role;
         private String region;
-        private String dialog;
+    }
+
+    class UserMessageRow {
+        private String role;
+        private String message;
     }
 
     class Holder<T> {
-        public Holder(T item, Thread thread) {
+        public Holder(final T item, final Thread thread) {
             this.item = item;
             this.thread = thread;
         }
-        public T item;
-        public Thread thread;
+        final public T item;
+        final public Thread thread;
     }
 
     private final HashMap<String, Holder<SBP>> sbps = new HashMap<String, Holder<SBP>>();
@@ -53,22 +56,22 @@ public class MatchingRegionStepDefinitions {
             if (!sbps.containsKey(sbp)) {
                 final SBP newSbp = new SBP(sbp);
                 final Thread sbp1Thread = new Thread(newSbp);
-                sbps.put(sbp, new Holder<SBP>(newSbp, sbp1Thread));
+                sbps.put(sbp, new Holder<>(newSbp, sbp1Thread));
                 sbp1Thread.setDaemon(true);
                 sbp1Thread.start();
             }
 
             // Add User
             if (row.role.startsWith("User")) {
-                final User user = new User(row.role);
+                final User user = new User(row.role, sbps.get(sbp).item);
                 users.put(row.role, user);
                 sbps.get(row.region).item.login(user);
             } else {
-                final SalesPerson salesPerson1 = new SalesPerson(row.role, sbps.get(row.region).item, new RFQStateManager.RFQState[]{RFQStateManager.RFQState.valueOf(row.dialog)});
-                final Thread salesPerson1Thread = new Thread(salesPerson1);
-                sales.put(row.role, new Holder<>(salesPerson1, salesPerson1Thread));
-                salesPerson1Thread.setDaemon(true);
-                salesPerson1Thread.start();
+                final SalesPerson salesPerson1 = new SalesPerson(row.role, sbps.get(row.region).item);
+//                final Thread salesPerson1Thread = new Thread(salesPerson1);
+                sales.put(row.role, new Holder<>(salesPerson1, null));
+//                salesPerson1Thread.setDaemon(true);
+//                salesPerson1Thread.start();
                 sbps.get(row.region).item.registerSalesPerson(salesPerson1);
             }
         }
@@ -84,17 +87,29 @@ public class MatchingRegionStepDefinitions {
 
     @When("^users submit messages as follows$")
     public void users_submit_messages_as_follows(DataTable messages) throws Throwable {
-        final List<RoleRegionRow> rows = messages.asList(RoleRegionRow.class);
+        final List<UserMessageRow> rows = messages.asList(UserMessageRow.class);
         int rfqId = 0;
-        for (final RoleRegionRow row : rows) {
-            final SBP sbp = sbps.get(row.region).item;
-            sbp.clientIncomingCommunication(new RFQ(users.get(row.role), ++rfqId, sbp));
+        for (final UserMessageRow row : rows) {
+            final RFQStateManager.RFQState message = RFQStateManager.RFQState.valueOf(row.message);
+            switch (message) {
+                case StartRFQ:
+                    final User user = users.get(row.role);
+                    final SBP sbp = user.getSBP();
+                    sbp.clientIncomingCommunication(new RFQ(user, ++rfqId, sbp));
+                    break;
+                case Quote:
+                    final SalesPerson salesperson = sales.get(row.role).item;
+                    salesperson.dialog(message);
+                    break;
+                case Putback:
+                    break;
+            }
         }
     }
 
     @Then("^the FSM looks like:$")
     public void the_FSM_looks_like(DataTable sbpStates) throws Throwable {
-        final List<CountRegionRow> rows = sbpStates.asList(CountRegionRow.class);
+        final List<CountRegionStateRow> rows = sbpStates.asList(CountRegionStateRow.class);
 
         final CountDownLatch[] latches = new CountDownLatch[rows.size()];
         final Subscription[] subscriptions = new Subscription[rows.size()];
@@ -103,7 +118,7 @@ public class MatchingRegionStepDefinitions {
         }
 
         int rowCount=0;
-        for (final CountRegionRow row : rows) {
+        for (final CountRegionStateRow row : rows) {
             final CountDownLatch latch = latches[rowCount++];
 
             final Holder<SBP> sbp = sbps.get(row.region);

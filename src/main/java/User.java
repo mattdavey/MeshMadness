@@ -1,9 +1,11 @@
 
 public class User {
     private final String name;
+    private final SBP sbp;
 
-    public User(final String name) {
+    public User(final String name, SBP sbp) {
         this.name = name;
+        this.sbp = sbp;
     }
 
     public void price(final double price) {
@@ -12,5 +14,13 @@ public class User {
 
     public String getName() {
         return name;
+    }
+
+    public void loginToSBP() {
+        sbp.join(sbp);
+    }
+
+    public SBP getSBP() {
+        return sbp;
     }
 }

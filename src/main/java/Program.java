@@ -17,26 +17,30 @@ public class Program
         sbp2Thread.start();
 
         // Connect one salesperson per region
-        final SalesPerson salesPerson1 = new SalesPerson("Sales1", sbp1, new RFQStateManager.RFQState[]{RFQStateManager.RFQState.Putback, RFQStateManager.RFQState.Putback, RFQStateManager.RFQState.Quote, RFQStateManager.RFQState.Quote, RFQStateManager.RFQState.Quote});
-        final SalesPerson salesPerson2 = new SalesPerson("Sales2", sbp2, new RFQStateManager.RFQState[]{RFQStateManager.RFQState.Putback, RFQStateManager.RFQState.Quote, RFQStateManager.RFQState.Quote, RFQStateManager.RFQState.Quote});
-        final Thread salesPerson1Thread = new Thread(salesPerson1);
-        final Thread salesPerson2Thread = new Thread(salesPerson2);
-        salesPerson1Thread.setDaemon(true);
-        salesPerson2Thread.setDaemon(true);
-        salesPerson1Thread.start();
-        salesPerson2Thread.start();
+        final SalesPerson salesPerson1 = new SalesPerson("Sales1", sbp1);
+        final SalesPerson salesPerson2 = new SalesPerson("Sales2", sbp2);
+//        final Thread salesPerson1Thread = new Thread(salesPerson1);
+//        final Thread salesPerson2Thread = new Thread(salesPerson2);
+//        salesPerson1Thread.setDaemon(true);
+//        salesPerson2Thread.setDaemon(true);
+//        salesPerson1Thread.start();
+//        salesPerson2Thread.start();
         sbp1.registerSalesPerson(salesPerson1);
         sbp2.registerSalesPerson(salesPerson2);
 
         // login user to a single region
-        final User user1 = new User("User1");
-        sbp1.login(user1);
-        final User user2 = new User("User2");
-        sbp2.login(user2);
+        final User user1 = new User("User1", sbp1);
+        user1.loginToSBP();
+        final User user2 = new User("User2", sbp2);
+        user2.loginToSBP();
+
+        salesPerson1.dialog(RFQStateManager.RFQState.Putback);
+        salesPerson2.dialog(RFQStateManager.RFQState.Quote);
+        salesPerson1.dialog(RFQStateManager.RFQState.Quote);
 
         // Request price
         sbp1.clientIncomingCommunication(new RFQ(user1, 1, sbp1));
-        sbp2.clientIncomingCommunication(new RFQ(user2, 2, sbp2));
+//        sbp2.clientIncomingCommunication(new RFQ(user2, 2, sbp2));
 
         try {
             System.in.read();
