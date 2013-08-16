@@ -11,8 +11,6 @@ import rx.Subscription;
 import rx.concurrency.Schedulers;
 import rx.observables.ConnectableObservable;
 import rx.subjects.ReplaySubject;
-import rx.util.functions.Action1;
-import rx.util.functions.Func2;
 
 import java.util.Random;
 
@@ -45,25 +43,17 @@ public class SalesPerson {
 
         observableDealerQueue = dealerQueue.subscribeOn(Schedulers.newThread()).publish();
         observableDialog = dialog.publish();
-        sub = Observable.zip(observableDealerQueue, observableDialog, new Func2<RFQ, RFQStateManager.RFQState, ZipHolder>() {
-            @Override
-            public ZipHolder call(final RFQ rfq, RFQStateManager.RFQState rfqState) {
-                return new ZipHolder(rfq, rfqState);
-            }
-        }).subscribe(new Action1<ZipHolder>() {
-            @Override
-            public void call(ZipHolder zipHolder) {
-                switch (zipHolder.state) {
-                    case Putback:
-                        logger.debug(String.format("%d %s Putback RFQ%s", System.nanoTime(), name, zipHolder.rfq.getRFQId()));
-                        sbp.send(new LocalPayload(zipHolder.rfq.getRFQId(), RFQStateManager.RFQState.Putback, sbp, name));
-                        break;
-                    case Quote:
-                        final double price = randomGenerator.nextInt(120);
-                        logger.debug(String.format("%d %s Quote %s RFQ%s", System.nanoTime(), name, price, zipHolder.rfq.getRFQId()));
-                        sbp.send(new LocalPayload(zipHolder.rfq.getRFQId(), RFQStateManager.RFQState.Quote, sbp, price, name));
-                        break;
-                }
+        sub = Observable.zip(observableDealerQueue, observableDialog, ZipHolder::new).subscribe(zipHolder -> {
+            switch (zipHolder.state) {
+                case Putback:
+                    logger.debug(String.format("%d %s Putback RFQ%s", System.nanoTime(), name, zipHolder.rfq.getRFQId()));
+                    sbp.send(new LocalPayload(zipHolder.rfq.getRFQId(), RFQStateManager.RFQState.Putback, sbp, name));
+                    break;
+                case Quote:
+                    final double price = randomGenerator.nextInt(120);
+                    logger.debug(String.format("%d %s Quote %s RFQ%s", System.nanoTime(), name, price, zipHolder.rfq.getRFQId()));
+                    sbp.send(new LocalPayload(zipHolder.rfq.getRFQId(), RFQStateManager.RFQState.Quote, sbp, price, name));
+                    break;
             }
         });
 
