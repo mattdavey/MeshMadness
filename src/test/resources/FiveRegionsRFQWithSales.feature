@@ -3,7 +3,7 @@ Feature: Submit an RFQ as a user with sales in five regions
   Background:
     Propagation of an RFQ between two regions with sale people connected
 
-  Scenario: A user connected to one of five region.  All regions have a sales connected. RFQ is submitted and user gets a quote
+  Scenario: One user is logged in, RFQ is submitted and user gets a quote
     Given the following users are logged in
     | Role   | Region |
     | User1  | SBP1   |
@@ -21,7 +21,7 @@ Feature: Submit an RFQ as a user with sales in five regions
     | Count | Region | State | Filler|
     | 1     | SBP2   | Quote | Sales2|
 
-  Scenario: A user connected to one of five region.  Some regions have a sales connected. RFQ is submitted and user gets a quote
+  Scenario: Two users logged in, RFQ is submitted and user gets a quote
     Given the following users are logged in
     | Role   | Region |
     | User1  | SBP1   |
@@ -40,7 +40,7 @@ Feature: Submit an RFQ as a user with sales in five regions
     | Count | Region | State | Filler|
     | 1     | SBP2   | Quote | Sales2|
 
-  Scenario: A user connected to one of five region.  Some regions have a sales connected. RFQ is submitted and user gets a quote after multiple attempts
+  Scenario: RFQ is submitted and user gets a quote after multiple attempts
     Given the following users are logged in
     | Role   | Region |
     | User1  | SBP1   |

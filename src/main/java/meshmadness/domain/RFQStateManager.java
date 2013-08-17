@@ -30,7 +30,7 @@ public class RFQStateManager {
         return quoterName;
     }
 
-    public synchronized void NextState(final Payload payload) {
+    synchronized public void NextState(final Payload payload) {
         if (currentState == RFQState.StartRFQ) {
             // Send to all sales people
 
@@ -108,7 +108,7 @@ public class RFQStateManager {
             switch (salesDIPayload.getState()) {
                 case Pickup:
                     changeToState(RFQState.Pickup);
-                    logger.debug(String.format("%d (%s) RFQ%s %s %s", System.nanoTime(), sbp.getName(),
+                    logger.debug(String.format("%d (%s) Pickup RFQ%s %s %s", System.nanoTime(), sbp.getName(),
                             rfq.getRFQId(), currentState, currentStateTime));
 
                     sbp.notifyAllMesh(rfq, currentState, currentStateTime);
@@ -116,7 +116,7 @@ public class RFQStateManager {
                 case Putback:
                     changeToState(RFQState.SendToDI);
                     quoterName = null;
-                    logger.debug(String.format("%d (%s) RFQ%s %s %s", System.nanoTime(), sbp.getName(),
+                    logger.debug(String.format("%d (%s) Putback RFQ%s %s %s", System.nanoTime(), sbp.getName(),
                             rfq.getRFQId(), currentState, currentStateTime));
 
                     sbp.notifyLocalSales(rfq, currentState);
@@ -129,7 +129,7 @@ public class RFQStateManager {
                 case Quote:
                     changeToState(RFQState.Quote);
                     quoterName = salesDIPayload.getQuoterName();
-                    logger.debug(String.format("%d (%s) RFQ%s %s %s", System.nanoTime(), sbp.getName(),
+                    logger.debug(String.format("%d (%s) Quote RFQ%s %s %s", System.nanoTime(), sbp.getName(),
                             rfq.getRFQId(), currentState, currentStateTime));
 
                     sbp.notifyAllMesh(rfq, currentState, currentStateTime);

@@ -29,7 +29,7 @@ Feature: User submit an RFQ into a single region that is actioned by sales
     | Count | Region | State   |
     | 1     | SBP1   | SendToDI|
 
-@focus
+
   Scenario: A user connected to a region that has a sales and submits an RFQ and receives no quote after 3 negotiations
     Given the following users are logged in
     | Role   | Region |
@@ -43,7 +43,8 @@ Feature: User submit an RFQ into a single region that is actioned by sales
     | Sales1| Putback |
     Then the FSM looks like:
     | Count | Region | State   |
-    | 1     | SBP1   | SendToDI|
+    | 3     | SBP1   | SendToDI|
+    | 3     | SBP1   | Pickup  |
 
   Scenario: A user connected to a region that has two sales and submits an RFQ with no quote received back
     Given the following users are logged in

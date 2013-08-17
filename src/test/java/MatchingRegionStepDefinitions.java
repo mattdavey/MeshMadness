@@ -58,10 +58,7 @@ public class MatchingRegionStepDefinitions {
             // Check for SBP
             if (!sbps.containsKey(sbp)) {
                 final SBP newSbp = new SBP(sbp);
-                final Thread sbp1Thread = new Thread(newSbp);
-                sbps.put(sbp, new Holder<>(newSbp, sbp1Thread));
-                sbp1Thread.setDaemon(true);
-                sbp1Thread.start();
+                sbps.put(sbp, new Holder<>(newSbp, null));
             }
 
             // Add actors.User
@@ -95,13 +92,12 @@ public class MatchingRegionStepDefinitions {
                 case StartRFQ:
                     final User user = users.get(row.role);
                     final SBP sbp = user.getSBP();
-                    sbp.clientIncomingCommunication(new RFQ(user, ++rfqId, sbp));
+                    sbp.submitRFQ(new RFQ(user, ++rfqId, sbp));
                     break;
                 case Quote:
+                case Putback:
                     final SalesPerson salesperson = sales.get(row.role).item;
                     salesperson.dialog(message);
-                    break;
-                case Putback:
                     break;
             }
         }
@@ -112,28 +108,29 @@ public class MatchingRegionStepDefinitions {
         final List<CountRegionStateRow> rows = sbpStates.asList(CountRegionStateRow.class);
 
         final CountDownLatch[] latches = new CountDownLatch[rows.size()];
-        final Subscription[] subscriptions = new Subscription[rows.size()];
         for (int i=0; i < rows.size(); i++) {
-            latches[i] = new CountDownLatch(1);
+            latches[i] = new CountDownLatch(rows.get(i).count);
         }
 
-        int rowCount=0;
+        final Subscription[] subscriptions = new Subscription[rows.size()];
+        int rowCount=-1;
         for (final CountRegionStateRow row : rows) {
-            final CountDownLatch latch = latches[rowCount++];
+            rowCount++;
+            final CountDownLatch latch = latches[rowCount];
 
-            final Holder<SBP> sbp = sbps.get(row.region);
-            subscriptions[rowCount-1] = sbp.item.subscribe().filter(new Func1<SBP.RFQSubjectHolder, Boolean>() {
+            final Holder<SBP> sbpHolder = sbps.get(row.region);
+            subscriptions[rowCount] = sbpHolder.item.subscribe().filter(new Func1<SBP.RFQSubjectHolder, Boolean>() {
                 @Override
                 public Boolean call(SBP.RFQSubjectHolder holder) {
-//                    System.out.println(String.format("%s %s %s %s", holder.state.toString(), row.state.toString(), row.filler, holder.fillerName));
-                    boolean retVal = false;
-                    if (holder.state == RFQStateManager.RFQState.valueOf(row.state))
-                        retVal = true;
+//                System.out.println(String.format("%s %s %s %s", holder.state, row.state.toString(), row.filler, holder.fillerName));
+                boolean retVal = false;
+                if (holder.state == RFQStateManager.RFQState.valueOf(row.state))
+                    retVal = true;
 
-                    if (row.filler != null && holder.fillerName != null && !holder.fillerName.equals(row.filler))
-                        retVal = false;
+                if (row.filler != null && holder.fillerName != null && !holder.fillerName.equals(row.filler))
+                    retVal = false;
 
-                    return retVal;
+                return retVal;
                 }
             }).subscribe(new Action1<SBP.RFQSubjectHolder>() {
                 @Override
@@ -142,13 +139,13 @@ public class MatchingRegionStepDefinitions {
                 }
             });
 
-            assertEquals(row.count, sbp.item.getWorkingRFQCount());
+//            assertEquals("Incorrect row count", row.count, sbpHolder.item.getWorkingRFQCount());
         }
 
         // wait for the above to finish or blow up if it's blocked
         for (int i=0; i < rows.size(); i++) {
             latches[i].await(5, TimeUnit.SECONDS);
-            assertEquals(0, latches[i].getCount());
+            assertEquals(String.format("%d %s %s", rows.get(i).count, rows.get(i).region, rows.get(i).state),  0, latches[i].getCount());
         }
     }
 }

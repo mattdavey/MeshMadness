@@ -8,31 +8,36 @@ import meshmadness.messaging.Payload;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import rx.Observable;
+import rx.Subscription;
+import rx.concurrency.NewThreadScheduler;
+import rx.concurrency.Schedulers;
 import rx.subjects.*;
+import rx.util.functions.Action1;
 
 import java.util.*;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
 
-public class SBP implements Runnable {
+public class SBP {
     final Logger logger = LoggerFactory.getLogger(SBP.class);
 
     final private String name;
     final private List<SBP> mesh = new ArrayList<>();
     final private List<User> users = new ArrayList<>();
     final private List<SalesPerson> dealers = new ArrayList<>();
-    final private BlockingQueue<Payload> rfqQueue = new LinkedBlockingQueue<>();
+
+    final private ReplaySubject<Payload> rfqQueue = ReplaySubject.create();
+
     final private Map<Integer, RFQStateManager> workingRFQs = new HashMap<>();
+    private final Subscription rfqQueueSubscription;
 
     public class RFQSubjectHolder {
         public final int id;
         public final RFQStateManager.RFQState state;
         public final String fillerName;
 
-        public RFQSubjectHolder(final int rfqId, final RFQStateManager.RFQState state, final String fillerName) {
+        public RFQSubjectHolder(final int rfqId, final RFQStateManager.RFQState state, final String quoterName) {
             this.id = rfqId;
             this.state = state;
-            this.fillerName = fillerName;
+            this.fillerName = quoterName;
         }
     }
 
@@ -41,8 +46,21 @@ public class SBP implements Runnable {
         return subjectRFQSubjectHolder;
     }
 
-    public SBP(String name) {
+    public SBP(final String name) {
         this.name = name;
+
+        rfqQueueSubscription = rfqQueue.observeOn(Schedulers.newThread()).subscribe(new Action1<Payload>() {
+            @Override
+            public void call(Payload rfq) {
+                // Find RFQ manager
+                final RFQStateManager rfqStateManager = workingRFQs.get(rfq.getRFQId());
+                if (rfqStateManager != null) {
+                    rfqStateManager.NextState(rfq);
+                    subjectRFQSubjectHolder.onNext(new RFQSubjectHolder(rfq.getRFQId(), rfqStateManager.getCurrentState(), rfqStateManager.getQuoterName()));
+                }
+
+            }
+        });
     }
 
     public void logon(final User user) {
@@ -54,16 +72,12 @@ public class SBP implements Runnable {
         mesh.add(sbp);
     }
 
-    public int getWorkingRFQCount() {
-        return workingRFQs.size();
-    }
-
     public void logon(final SalesPerson salesPerson) {
         assert this.dealers.contains(salesPerson);
         this.dealers.add(salesPerson);
     }
 
-    public void clientIncomingCommunication(final RFQ rfq) {
+    public void submitRFQ(final RFQ rfq) {
         if (!workingRFQs.containsKey(rfq.getRFQId())) {
 
             final RFQStateManager rfqStateManager = new RFQStateManager(this, rfq);
@@ -71,31 +85,13 @@ public class SBP implements Runnable {
             workingRFQs.put(rfq.getRFQId(), rfqStateManager);
         }
 
-        rfqQueue.add(rfq);
+        rfqQueue.onNext(rfq);
     }
 
     public void notifyLocalSales(final RFQ rfq, final RFQStateManager.RFQState state) {
         logger.debug(String.format("%d (%s) Notify all sales people RFQ%s", System.nanoTime(), name, rfq.getRFQId()));
         for (final SalesPerson salesPerson : getSalesPersons()) {
             salesPerson.SalesPersonCommunication(rfq, state);
-        }
-    }
-
-    public void run() {
-        while(true){
-            try {
-                final Payload rfq = rfqQueue.take();
-                // Find RFQ manager
-                final RFQStateManager rfqStateManager = workingRFQs.get(rfq.getRFQId());
-                if (rfqStateManager != null) {
-                    rfqStateManager.NextState(rfq);
-                    subjectRFQSubjectHolder.onNext(new RFQSubjectHolder(rfq.getRFQId(), rfqStateManager.getCurrentState(), rfqStateManager.getQuoterName()));
-                } else {
-                    new RuntimeException("Unregistered RFQ id");
-                }
-            } catch (InterruptedException ex) {
-                System.out.println(ex);
-            }
         }
     }
 
@@ -112,22 +108,22 @@ public class SBP implements Runnable {
         }
 
         // Process Mesh message
-        rfqQueue.add(meshPayload);
+        rfqQueue.onNext(meshPayload);
     }
 
     public List<SalesPerson> getSalesPersons() {
         return dealers;
     }
 
-    public void send(final LocalPayload salesPersonModification) {
-        rfqQueue.add(salesPersonModification);
+    synchronized public void send(final LocalPayload salesPayload) {
+        rfqQueue.onNext(salesPayload);
     }
 
     public String getName() {
         return name;
     }
 
-    synchronized public void notifyAllMesh(final RFQ rfq, final RFQStateManager.RFQState state, final long time) {
+    public void notifyAllMesh(final RFQ rfq, final RFQStateManager.RFQState state, final long time) {
         for (final SBP region : mesh) {
             try {
                 if (region != rfq.getOriginatingSBP()) {
@@ -139,7 +135,7 @@ public class SBP implements Runnable {
         }
     }
 
-    synchronized public void notifyOneRegion(final SBP source, final RFQ rfq, final RFQStateManager.RFQState state, long time) {
+    public void notifyOneRegion(final SBP source, final RFQ rfq, final RFQStateManager.RFQState state, long time) {
         source.MeshCommunications(new MeshPayload(rfq, state, this, time));
     }
 }

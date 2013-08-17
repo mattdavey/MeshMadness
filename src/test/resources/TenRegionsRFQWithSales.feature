@@ -3,7 +3,7 @@ Feature: Submit an RFQ as a user with sales in ten regions
   Background:
     Propagation of an RFQ between two regions with sale people connected
 
-  Scenario: A user connected to one of ten region.  All regions have a sales connected. RFQ is submitted and user gets a quote
+  Scenario: RFQ is submitted and user gets a quote
     Given the following users are logged in
     | Role    | Region |
     | User1   | SBP1   |
@@ -30,12 +30,22 @@ Feature: Submit an RFQ as a user with sales in ten regions
     | Sales8  | Putback |
     | Sales9  | Putback |
     | Sales10 | Putback |
-    | Sales2| Quote   |
+    | Sales2  | Quote   |
     Then the FSM looks like:
-    | Count | Region | State | Filler|
-    | 1     | SBP2   | Quote | Sales2|
+    | Count | Region | State | Filler |
+    | 1     | SBP1   | Pickup| Sales1 |
+    | 1     | SBP2   | Pickup| Sales2 |
+    | 1     | SBP3   | Pickup| Sales3 |
+    | 1     | SBP4   | Pickup| Sales4 |
+    | 1     | SBP5   | Pickup| Sales5 |
+    | 1     | SBP6   | Pickup| Sales6 |
+    | 1     | SBP7   | Pickup| Sales7 |
+    | 1     | SBP8   | Pickup| Sales8 |
+    | 1     | SBP9   | Pickup| Sales9 |
+    | 1     | SBP10  | Pickup| Sales10|
+    | 1     | SBP2   | Quote | Sales2 |
 
-  Scenario: A user connected to one of ten region.  Some regions have a sales connected. RFQ is submitted and user gets a quote
+  Scenario: RFQ is submitted and user gets a quote
     Given the following users are logged in
     | Role    | Region |
     | User1   | SBP1   |
@@ -62,10 +72,20 @@ Feature: Submit an RFQ as a user with sales in ten regions
     | Sales10 | Putback |
     | Sales2  | Quote   |
     Then the FSM looks like:
-    | Count | Region | State | Filler|
-    | 1     | SBP2   | Quote | Sales2|
-
-  Scenario: A user connected to one of ten region.  Some regions have a sales connected. RFQ is submitted and user gets a quote after multiple attempts
+    | Count | Region | State | Filler |
+    | 1     | SBP1   | Pickup| Sales1 |
+    | 1     | SBP2   | Pickup| Sales2 |
+    | 1     | SBP3   | Pickup| Sales3 |
+    | 0     | SBP4   | Pickup| Sales4 |
+    | 1     | SBP5   | Pickup| Sales5 |
+    | 1     | SBP6   | Pickup| Sales6 |
+    | 1     | SBP7   | Pickup| Sales7 |
+    | 0     | SBP8   | Pickup| Sales8 |
+    | 1     | SBP9   | Pickup| Sales9 |
+    | 1     | SBP10  | Pickup| Sales10|
+    | 1     | SBP2   | Quote | Sales2 |
+@focus
+  Scenario: Two users, RFQ is submitted and user gets a quote after multiple attempts
     Given the following users are logged in
     | Role    | Region |
     | User1   | SBP1   |
@@ -104,5 +124,6 @@ Feature: Submit an RFQ as a user with sales in ten regions
     | Sales2  | Quote   |
     Then the FSM looks like:
     | Count | Region | State | Filler|
+    | 1     | SBP2   | Pickup| Sales2|
     | 1     | SBP2   | Quote | Sales2|
 
