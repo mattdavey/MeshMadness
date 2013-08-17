@@ -68,11 +68,11 @@ public class MatchingRegionStepDefinitions {
             if (row.role.startsWith("User")) {
                 final User user = new User(row.role, sbps.get(sbp).item);
                 users.put(row.role, user);
-                sbps.get(row.region).item.login(user);
+                sbps.get(row.region).item.logon(user);
             } else {
                 final SalesPerson salesPerson1 = new SalesPerson(row.role, sbps.get(row.region).item);
                 sales.put(row.role, new Holder<>(salesPerson1, null));
-                sbps.get(row.region).item.registerSalesPerson(salesPerson1);
+                sbps.get(row.region).item.logon(salesPerson1);
             }
         }
 
@@ -124,20 +124,20 @@ public class MatchingRegionStepDefinitions {
             final Holder<SBP> sbp = sbps.get(row.region);
             subscriptions[rowCount-1] = sbp.item.subscribe().filter(new Func1<SBP.RFQSubjectHolder, Boolean>() {
                 @Override
-                public Boolean call(final SBP.RFQSubjectHolder holder) {
+                public Boolean call(SBP.RFQSubjectHolder holder) {
+//                    System.out.println(String.format("%s %s %s %s", holder.state.toString(), row.state.toString(), row.filler, holder.fillerName));
                     boolean retVal = false;
                     if (holder.state == RFQStateManager.RFQState.valueOf(row.state))
                         retVal = true;
 
-                    if (row.filler != null && holder.fillerName != row.filler)
+                    if (row.filler != null && holder.fillerName != null && !holder.fillerName.equals(row.filler))
                         retVal = false;
-
 
                     return retVal;
                 }
             }).subscribe(new Action1<SBP.RFQSubjectHolder>() {
                 @Override
-                public void call(SBP.RFQSubjectHolder rfqSubjectHolder) {
+                public void call(final SBP.RFQSubjectHolder rfqSubjectHolder) {
                     latch.countDown();
                 }
             });

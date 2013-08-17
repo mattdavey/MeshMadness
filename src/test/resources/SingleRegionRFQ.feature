@@ -27,6 +27,7 @@ Feature: Submit an RFQ by users with no sales interaction
     | Count | Region | State    |
     | 2     | SBP1   | SendToDI |
 
+
   Scenario: Two user's connected to separate region and submits RFQ's
     Given the following users are logged in
     | Role   | Region |

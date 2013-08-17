@@ -34,7 +34,7 @@ public class LocalPayload implements Payload {
         return price;
     }
 
-    public String getFillerName() {
+    public String getQuoterName() {
         return fillerName;
     }
 }

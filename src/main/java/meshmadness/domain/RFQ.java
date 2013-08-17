@@ -40,11 +40,11 @@ public class RFQ implements Cloneable, Payload {
         return user.getName();
     }
 
-    public User getUser() {
+    public User getOriginatingUser() {
         return user;
     }
 
-    public SBP getSource() {
+    public SBP getOriginatingSBP() {
         return source;
     }
 }

@@ -15,7 +15,7 @@ public class User {
         this.sbp = sbp;
     }
 
-    public void price(final double price) {
+    public void notifyPrice(final double price) {
         logger.debug(String.format("%d %s %s", System.nanoTime(), name, price));
     }
 

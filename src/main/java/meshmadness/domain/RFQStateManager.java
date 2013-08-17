@@ -15,19 +15,19 @@ public class RFQStateManager {
     private final RFQ rfq;
     private RFQState currentState=RFQState.StartRFQ;
     private long currentStateTime =System.nanoTime();
-    private String fillerName;
-    private SBP whoLocked = null;
+    private String quoterName;
+    private SBP sbpThatLockedRFQ = null;
 
     public RFQStateManager(final SBP sbp, final RFQ rfq) {
         this.sbp = sbp;
         this.rfq = rfq;
 
-        logger.debug(String.format("%d (%s) RFQStateManager Constructor for %s RFQ%s %s %s", System.nanoTime(), sbp.getName(),
+        logger.debug(String.format("%d (%s) RFQStateManager Constructor for %s RFQ%s (%s,%s)", System.nanoTime(), sbp.getName(),
                 rfq.getUsername(), rfq.getRFQId(), currentState, currentStateTime));
     }
 
-    public String getFillerName() {
-        return fillerName;
+    public String getQuoterName() {
+        return quoterName;
     }
 
     public synchronized void NextState(final Payload payload) {
@@ -35,86 +35,106 @@ public class RFQStateManager {
             // Send to all sales people
 
             currentState = RFQState.SendToDI;
-
-            sbp.sendToAllSales(rfq, currentState);
+            sbp.notifyLocalSales(rfq, currentState);
         } else if (payload instanceof LocalPayload) {
-            processLocalPayload((LocalPayload)payload);
+            processLocalSalesDIMessage((LocalPayload) payload);
         } else if (payload instanceof MeshPayload) {
             processMeshPayload((MeshPayload) payload);
         }
     }
 
-    private void processMeshPayload(MeshPayload payload) {
-        final MeshPayload meshPayload = (MeshPayload)payload;
+    private void processMeshPayload(final MeshPayload meshPayload) {
+        // if somebody tells us to lock, we need to confirm the time
         if (meshPayload.getState() == RFQState.Locked) {
-            changeToState(RFQState.Locked);
-            whoLocked = meshPayload.getSource();
+            // If the mesh payload is earlier than us, then another region has the RFQ
+            if (meshPayload.getTime() < currentStateTime) {
+                changeToState(RFQState.Locked);
+                sbpThatLockedRFQ = meshPayload.getSource();
 
-            logger.debug(String.format("%d (%s) RFQ%s %s %s", System.nanoTime(), sbp.getName(),
-                    rfq.getRFQId(), currentState, currentStateTime));
-        } else if (meshPayload.getTime() > currentStateTime && currentState != RFQState.Locked) {
-            // Cancel this back to the source
-            logger.debug(String.format("%d (%s) Telling %s to Lock RFQ%s %s %s ", System.nanoTime(), sbp.getName(),
-                    meshPayload.getSource().getName(), meshPayload.getRFQId(), meshPayload.getTime(), currentStateTime));
+                logger.debug(String.format("%d (%s) RFQ%s %s %s", System.nanoTime(), sbp.getName(), rfq.getRFQId(), currentState, currentStateTime));
+            } else {
+                // Ignore since we are earlier in time
 
-            sbp.notifyRegion(meshPayload.getSource(), meshPayload.getRFQ(), RFQState.Locked, currentStateTime);
-        } else {
-            logger.debug(String.format("%d (%s) RFQ%s LOCKED by %s %s %s %s", System.nanoTime(), sbp.getName(),
-                    meshPayload.getRFQId(), meshPayload.getSource().getName(), meshPayload.getState(), meshPayload.getTime(), meshPayload.getSource().getName()));
-
-            currentState = RFQState.Locked;
-            currentStateTime = meshPayload.getTime();
-            whoLocked = meshPayload.getSource();
+                logger.debug(String.format("%d (%s) Telling %s to Lock RFQ%s %s %s ", System.nanoTime(), sbp.getName(), meshPayload.getSource().getName(), meshPayload.getRFQId(), meshPayload.getTime(), currentStateTime));
+                sbp.notifyOneRegion(meshPayload.getSource(), meshPayload.getRFQ(), RFQState.Locked, currentStateTime);
+            }
         }
     }
 
-    private void processLocalPayload(LocalPayload salesPersonModification) {
+//    private void OLD_processMeshPayload(final MeshPayload meshPayload) {
+//        if (meshPayload.getState() == RFQState.Locked) {
+//            changeToState(RFQState.Locked);
+//            sbpThatLockedRFQ = meshPayload.getSource();
+//
+//            logger.debug(String.format("%d (%s) RFQ%s %s %s", System.nanoTime(), sbp.getName(),
+//                    rfq.getRFQId(), currentState, currentStateTime));
+//        } else if (meshPayload.getTime() > currentStateTime && currentState != RFQState.Locked) {
+//            // Cancel this back to the source
+//            logger.debug(String.format("%d (%s) Telling %s to Lock RFQ%s %s %s ", System.nanoTime(), sbp.getName(),
+//                    meshPayload.getSource().getName(), meshPayload.getRFQId(), meshPayload.getTime(), currentStateTime));
+//
+//            sbp.notifyOneRegion(meshPayload.getSource(), meshPayload.getRFQ(), RFQState.Locked, currentStateTime);
+//        }
+//        else {
+//            logger.debug(String.format("%d (%s) RFQ%s LOCKED by %s %s %s %s", System.nanoTime(), sbp.getName(),
+//                    meshPayload.getRFQId(), meshPayload.getSource().getName(), meshPayload.getState(), meshPayload.getTime(), meshPayload.getSource().getName()));
+//
+//            currentState = RFQState.Locked;
+//            currentStateTime = meshPayload.getTime();
+//            sbpThatLockedRFQ = meshPayload.getSource();
+//        }
+//    }
+
+    private void processLocalSalesDIMessage(final LocalPayload salesDIPayload) {
         if (currentState == RFQState.Locked) {
-            if (rfq.getSource() == whoLocked && salesPersonModification.getState() == RFQState.Putback) {
+            if (rfq.getOriginatingSBP() == sbpThatLockedRFQ && salesDIPayload.getState() == RFQState.Putback) {
                 logger.debug(String.format("%d (%s) %s RFQ%s Unlock %s %s", System.nanoTime(), sbp.getName(),
-                        rfq.getUsername(), rfq.getRFQId(), salesPersonModification.getState(), rfq.getSource().getName()));
+                        rfq.getUsername(), rfq.getRFQId(), salesDIPayload.getState(), rfq.getOriginatingSBP().getName()));
+
                 changeToState(RFQState.SendToDI);
-                whoLocked = null;
-                sbp.sendToAllSales(rfq, currentState);
-            } else if (rfq.getSource() == whoLocked && salesPersonModification.getState() == RFQState.Quote) {
+                sbpThatLockedRFQ = null;
+                sbp.notifyLocalSales(rfq, currentState);
+            } else if (rfq.getOriginatingSBP() == sbpThatLockedRFQ && salesDIPayload.getState() == RFQState.Quote) {
                 changeToState(RFQState.Complete);
-                fillerName = salesPersonModification.getFillerName();
-                whoLocked = null;
-                sbp.sendToAllSales(rfq, currentState);
-            } else {
-                logger.debug(String.format("%d (%s) %s RFQ%s IGNORED(Locked) %s %s", System.nanoTime(), sbp.getName(),
-                        rfq.getUsername(), rfq.getRFQId(), salesPersonModification.getState(), rfq.getSource().getName()));
+                quoterName = salesDIPayload.getQuoterName();
+                sbpThatLockedRFQ = null;
+                sbp.notifyLocalSales(rfq, currentState);
             }
+//            else {
+//                logger.debug(String.format("%d (%s) %s RFQ%s IGNORED(Locked) %s %s", System.nanoTime(), sbp.getName(),
+//                        rfq.getUsername(), rfq.getRFQId(), salesDIPayload.getState(), rfq.getOriginatingSBP().getName()));
+//            }
         } else {
-            switch (salesPersonModification.getState()) {
+            switch (salesDIPayload.getState()) {
                 case Pickup:
                     changeToState(RFQState.Pickup);
                     logger.debug(String.format("%d (%s) RFQ%s %s %s", System.nanoTime(), sbp.getName(),
                             rfq.getRFQId(), currentState, currentStateTime));
 
-                    sbp.notifyMesh(rfq, currentState, currentStateTime);
+                    sbp.notifyAllMesh(rfq, currentState, currentStateTime);
                     break;
                 case Putback:
                     changeToState(RFQState.SendToDI);
-                    fillerName = null;
+                    quoterName = null;
                     logger.debug(String.format("%d (%s) RFQ%s %s %s", System.nanoTime(), sbp.getName(),
                             rfq.getRFQId(), currentState, currentStateTime));
 
-                    sbp.sendToAllSales(rfq, currentState);
+                    sbp.notifyLocalSales(rfq, currentState);
 
-                    if (whoLocked!= null) {
-                        sbp.notifyRegion(whoLocked, rfq, RFQState.Putback, currentStateTime);
-                        whoLocked = null;
+                    if (sbpThatLockedRFQ != null) {
+                        sbp.notifyOneRegion(sbpThatLockedRFQ, rfq, RFQState.Putback, currentStateTime);
+                        sbpThatLockedRFQ = null;
                     }
                     break;
                 case Quote:
                     changeToState(RFQState.Quote);
-                    fillerName = salesPersonModification.getFillerName();
+                    quoterName = salesDIPayload.getQuoterName();
                     logger.debug(String.format("%d (%s) RFQ%s %s %s", System.nanoTime(), sbp.getName(),
                             rfq.getRFQId(), currentState, currentStateTime));
 
-                    sbp.notifyMesh(rfq, currentState, currentStateTime);
-                    rfq.getUser().price(salesPersonModification.getPrice());
+                    sbp.notifyAllMesh(rfq, currentState, currentStateTime);
+
+                    rfq.getOriginatingUser().notifyPrice(salesDIPayload.getPrice());
                     break;
                 default:
                     throw new RuntimeException("Unknown State");
@@ -134,5 +154,4 @@ public class RFQStateManager {
     public long getCurrentStateTime() {
         return currentStateTime;
     }
-
 }

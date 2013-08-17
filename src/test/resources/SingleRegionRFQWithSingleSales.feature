@@ -1,6 +1,5 @@
 Feature: Submit an RFQ to a single region with one sales actor
 
-@focus
   Scenario: A user connected to a region and submits an RFQ
     Given the following users are logged in
     | Role   | Region |
