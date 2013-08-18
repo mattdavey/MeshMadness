@@ -17,6 +17,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import static junit.framework.Assert.assertEquals;
+import static junit.framework.Assert.assertTrue;
 
 public class MatchingRegionStepDefinitions {
     private class CountRegionStateRow {
@@ -122,7 +123,6 @@ public class MatchingRegionStepDefinitions {
             subscriptions[rowCount] = sbpHolder.item.subscribe().filter(new Func1<SBP.RFQSubjectHolder, Boolean>() {
                 @Override
                 public Boolean call(SBP.RFQSubjectHolder holder) {
-//                System.out.println(String.format("%s %s %s %s", holder.state, row.state.toString(), row.filler, holder.fillerName));
                 boolean retVal = false;
                 if (holder.state == RFQStateManager.RFQState.valueOf(row.state))
                     retVal = true;
@@ -135,11 +135,11 @@ public class MatchingRegionStepDefinitions {
             }).subscribe(new Action1<SBP.RFQSubjectHolder>() {
                 @Override
                 public void call(final SBP.RFQSubjectHolder rfqSubjectHolder) {
+                    assertTrue("Latch already zero", latch.getCount() != 0);
                     latch.countDown();
                 }
             });
 
-//            assertEquals("Incorrect row count", row.count, sbpHolder.item.getWorkingRFQCount());
         }
 
         // wait for the above to finish or blow up if it's blocked

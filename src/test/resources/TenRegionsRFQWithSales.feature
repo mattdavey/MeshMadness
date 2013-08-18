@@ -84,7 +84,7 @@ Feature: Submit an RFQ as a user with sales in ten regions
     | 1     | SBP9   | Pickup| Sales9 |
     | 1     | SBP10  | Pickup| Sales10|
     | 1     | SBP2   | Quote | Sales2 |
-@focus
+
   Scenario: Two users, RFQ is submitted and user gets a quote after multiple attempts
     Given the following users are logged in
     | Role    | Region |
@@ -124,6 +124,6 @@ Feature: Submit an RFQ as a user with sales in ten regions
     | Sales2  | Quote   |
     Then the FSM looks like:
     | Count | Region | State | Filler|
-    | 1     | SBP2   | Pickup| Sales2|
+    | 2     | SBP2   | Pickup| Sales2|
     | 1     | SBP2   | Quote | Sales2|
 
