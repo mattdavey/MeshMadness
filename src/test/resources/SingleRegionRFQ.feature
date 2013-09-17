@@ -8,11 +8,11 @@ Feature: Submit an RFQ by users with no sales interaction
     | Role   | Region |
     | User1  | SBP1   |
     When users submit messages as follows
-    | Role  | Message |
-    | User1 | StartRFQ|
+    | Role  | Message | Id    |
+    | User1 | StartRFQ|  1    |
     Then the FSM looks like:
-    | Count | Region | State    |
-    | 1     | SBP1   | SendToDI |
+    | Count | Region | Id | State    |
+    | 1     | SBP1   | 1  | SendToDI |
 
 
   Scenario: Two user's connected to a region and submits RFQ's
@@ -21,12 +21,13 @@ Feature: Submit an RFQ by users with no sales interaction
     | User1  | SBP1   |
     | User2  | SBP1   |
     When users submit messages as follows
-    | Role  | Message |
-    | User1 | StartRFQ|
-    | User2 | StartRFQ|
+    | Role  | Message | Id    |
+    | User1 | StartRFQ|  1    |
+    | User2 | StartRFQ|  2    |
     Then the FSM looks like:
-    | Count | Region | State    |
-    | 2     | SBP1   | SendToDI |
+    | Count | Region | Id    | State    |
+    | 1     | SBP1   |  1    | SendToDI |
+    | 1     | SBP1   |  2    | SendToDI |
 
 
   Scenario: Two user's connected to separate region and submits RFQ's
@@ -35,10 +36,10 @@ Feature: Submit an RFQ by users with no sales interaction
     | User1  | SBP1   |
     | User2  | SBP2   |
     When users submit messages as follows
-    | Role  | Message |
-    | User1 | StartRFQ|
-    | User2 | StartRFQ|
+    | Role  | Message | Id |
+    | User1 | StartRFQ|  1 |
+    | User2 | StartRFQ|  2 |
     Then the FSM looks like:
-    | Count | Region | State    |
-    | 2     | SBP1   | SendToDI |
-    | 2     | SBP2   | SendToDI |
+    | Count | Region | Id | State    |
+    | 1     | SBP1   | 1  | SendToDI |
+    | 1     | SBP2   | 2  | SendToDI |

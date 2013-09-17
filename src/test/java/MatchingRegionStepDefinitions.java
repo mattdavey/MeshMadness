@@ -20,9 +20,10 @@ import static junit.framework.Assert.assertEquals;
 import static junit.framework.Assert.assertTrue;
 
 public class MatchingRegionStepDefinitions {
-    private class CountRegionStateRow {
+    private class CountRegionIdStateRow {
         private int count;
         private String region;
+        private int id;
         private String state;
         private String filler;
     }
@@ -32,9 +33,10 @@ public class MatchingRegionStepDefinitions {
         private String region;
     }
 
-    private class UserMessageRow {
+    private class UserMessageIdRow {
         private String role;
         private String message;
+        private int id;
     }
 
     private class Holder<T> {
@@ -85,20 +87,20 @@ public class MatchingRegionStepDefinitions {
 
     @When("^users submit messages as follows$")
     public void users_submit_messages_as_follows(DataTable messages) throws Throwable {
-        final List<UserMessageRow> rows = messages.asList(UserMessageRow.class);
+        final List<UserMessageIdRow> rows = messages.asList(UserMessageIdRow.class);
         int rfqId = 0;
-        for (final UserMessageRow row : rows) {
+        for (final UserMessageIdRow row : rows) {
             final RFQStateManager.RFQState message = RFQStateManager.RFQState.valueOf(row.message);
             switch (message) {
                 case StartRFQ:
                     final User user = users.get(row.role);
                     final SBP sbp = user.getSBP();
-                    sbp.submitRFQ(new RFQ(user, ++rfqId, sbp));
+                    sbp.submitRFQ(new RFQ(user, row.id, sbp));
                     break;
                 case Quote:
                 case Putback:
                     final SalesPerson salesperson = sales.get(row.role).item;
-                    salesperson.dialog(message);
+                    salesperson.dialog(message, row.id);
                     break;
             }
         }
@@ -106,7 +108,7 @@ public class MatchingRegionStepDefinitions {
 
     @Then("^the FSM looks like:$")
     public void the_FSM_looks_like(DataTable sbpStates) throws Throwable {
-        final List<CountRegionStateRow> rows = sbpStates.asList(CountRegionStateRow.class);
+        final List<CountRegionIdStateRow> rows = sbpStates.asList(CountRegionIdStateRow.class);
 
         final CountDownLatch[] latches = new CountDownLatch[rows.size()];
         for (int i=0; i < rows.size(); i++) {
@@ -115,27 +117,26 @@ public class MatchingRegionStepDefinitions {
 
         final Subscription[] subscriptions = new Subscription[rows.size()];
         int rowCount=-1;
-        for (final CountRegionStateRow row : rows) {
+        for (final CountRegionIdStateRow row : rows) {
             rowCount++;
             final CountDownLatch latch = latches[rowCount];
 
             final Holder<SBP> sbpHolder = sbps.get(row.region);
             subscriptions[rowCount] = sbpHolder.item.subscribe().filter(new Func1<SBP.RFQSubjectHolder, Boolean>() {
                 @Override
-                public Boolean call(SBP.RFQSubjectHolder holder) {
-                boolean retVal = false;
-                if (holder.state == RFQStateManager.RFQState.valueOf(row.state))
-                    retVal = true;
+                public Boolean call(final SBP.RFQSubjectHolder holder) {
+                    boolean retVal = false;
+                    if (holder.state == RFQStateManager.RFQState.valueOf(row.state) && holder.id == row.id)
+                        retVal = true;
 
-                if (row.filler != null && holder.fillerName != null && !holder.fillerName.equals(row.filler))
-                    retVal = false;
+                    if (holder.fillerName != null && !holder.fillerName.equals(row.filler))
+                        retVal = false;
 
-                return retVal;
+                    return retVal;
                 }
             }).subscribe(new Action1<SBP.RFQSubjectHolder>() {
                 @Override
                 public void call(final SBP.RFQSubjectHolder rfqSubjectHolder) {
-                    assertTrue("Latch already zero", latch.getCount() != 0);
                     latch.countDown();
                 }
             });

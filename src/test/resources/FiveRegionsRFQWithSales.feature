@@ -11,15 +11,15 @@ Feature: Submit an RFQ as a user with sales in five regions
     | Sales2 | SBP2   |
     | Sales3 | SBP3   |
     When users submit messages as follows
-    | Role  | Message |
-    | User1 | StartRFQ|
-    | Sales1| Putback |
-    | Sales2| Putback |
-    | Sales3| Putback |
-    | Sales2| Quote   |
+    | Role  | Message | Id |
+    | User1 | StartRFQ|  1 |
+    | Sales1| Putback |  1 |
+    | Sales2| Putback |  1 |
+    | Sales3| Putback |  1 |
+    | Sales2| Quote   |  1 |
     Then the FSM looks like:
-    | Count | Region | State | Filler|
-    | 1     | SBP2   | Quote | Sales2|
+    | Count | Region | Id | State | Filler|
+    | 1     | SBP2   | 1  | Quote | Sales2|
 
   Scenario: Two users logged in, RFQ is submitted and user gets a quote
     Given the following users are logged in
@@ -30,15 +30,15 @@ Feature: Submit an RFQ as a user with sales in five regions
     | Sales3 | SBP3   |
     | User2  | SBP4   |
     When users submit messages as follows
-    | Role  | Message |
-    | User1 | StartRFQ|
-    | Sales1| Putback |
-    | Sales2| Putback |
-    | Sales3| Putback |
-    | Sales2| Quote   |
+    | Role  | Message | Id |
+    | User1 | StartRFQ|  1 |
+    | Sales1| Putback |  1 |
+    | Sales2| Putback |  1 |
+    | Sales3| Putback |  1 |
+    | Sales2| Quote   |  1 |
     Then the FSM looks like:
-    | Count | Region | State | Filler|
-    | 1     | SBP2   | Quote | Sales2|
+    | Count | Region | Id | State | Filler|
+    | 1     | SBP2   | 1  | Quote | Sales2|
 
   Scenario: RFQ is submitted and user gets a quote after multiple attempts
     Given the following users are logged in
@@ -49,15 +49,15 @@ Feature: Submit an RFQ as a user with sales in five regions
     | Sales3 | SBP3   |
     | User2  | SBP4   |
     When users submit messages as follows
-    | Role  | Message |
-    | User1 | StartRFQ|
-    | Sales1| Putback |
-    | Sales2| Putback |
-    | Sales3| Putback |
-    | Sales1| Putback |
-    | Sales2| Putback |
-    | Sales3| Putback |
-    | Sales2| Quote   |
+    | Role  | Message | Id |
+    | User1 | StartRFQ| 1  |
+    | Sales1| Putback | 1  |
+    | Sales2| Putback | 1  |
+    | Sales3| Putback | 1  |
+    | Sales1| Putback | 1  |
+    | Sales2| Putback | 1  |
+    | Sales3| Putback | 1  |
+    | Sales2| Quote   | 1  |
     Then the FSM looks like:
-    | Count | Region | State | Filler|
-    | 1     | SBP2   | Quote | Sales2|
+    | Count | Region | Id | State | Filler|
+    | 1     | SBP2   | 1  | Quote | Sales2|

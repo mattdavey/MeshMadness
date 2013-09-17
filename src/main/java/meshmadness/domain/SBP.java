@@ -9,7 +9,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import rx.Observable;
 import rx.Subscription;
-import rx.concurrency.NewThreadScheduler;
 import rx.concurrency.Schedulers;
 import rx.subjects.*;
 import rx.util.functions.Action1;
@@ -39,11 +38,16 @@ public class SBP {
             this.state = state;
             this.fillerName = quoterName;
         }
+
+        @Override
+        public String toString() {
+            return String.format("RFQ%d %s %s", id, state, fillerName);
+        }
     }
 
-    private ReplaySubject<RFQSubjectHolder> subjectRFQSubjectHolder = ReplaySubject.create();
+    private ReplaySubject<RFQSubjectHolder> rfqStateManagerChanges = ReplaySubject.create();
     public Observable<RFQSubjectHolder> subscribe() {
-        return subjectRFQSubjectHolder;
+        return rfqStateManagerChanges;
     }
 
     public SBP(final String name) {
@@ -56,7 +60,9 @@ public class SBP {
                 final RFQStateManager rfqStateManager = workingRFQs.get(rfq.getRFQId());
                 if (rfqStateManager != null) {
                     rfqStateManager.NextState(rfq);
-                    subjectRFQSubjectHolder.onNext(new RFQSubjectHolder(rfq.getRFQId(), rfqStateManager.getCurrentState(), rfqStateManager.getQuoterName()));
+                    final RFQSubjectHolder data = new RFQSubjectHolder(rfq.getRFQId(), rfqStateManager.getCurrentState(), rfqStateManager.getQuoterName());
+                    logger.debug(String.format("%d (%s) storing RFQManagerStateChange %s", System.nanoTime(), name, data.toString()));
+                    rfqStateManagerChanges.onNext(data);
                 }
 
             }
