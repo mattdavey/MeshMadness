@@ -70,7 +70,7 @@ public class SBP {
     }
 
     public void logon(final User user) {
-        assert this.users.contains(user);
+        assert !users.contains(user);
         users.add(user);
     }
 
@@ -79,7 +79,7 @@ public class SBP {
     }
 
     public void logon(final SalesPerson salesPerson) {
-        assert this.dealers.contains(salesPerson);
+        assert !dealers.contains(salesPerson);
         this.dealers.add(salesPerson);
     }
 
