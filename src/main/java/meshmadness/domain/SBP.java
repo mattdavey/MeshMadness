@@ -8,12 +8,14 @@ import meshmadness.messaging.Payload;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import rx.Observable;
-import rx.Subscription;
 import rx.concurrency.Schedulers;
-import rx.subjects.*;
+import rx.subjects.ReplaySubject;
 import rx.util.functions.Action1;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class SBP {
     final Logger logger = LoggerFactory.getLogger(SBP.class);
@@ -26,7 +28,6 @@ public class SBP {
     final private ReplaySubject<Payload> rfqQueue = ReplaySubject.create();
 
     final private Map<Integer, RFQStateManager> workingRFQs = new HashMap<>();
-    private final Subscription rfqQueueSubscription;
 
     public class RFQSubjectHolder {
         public final int id;
@@ -53,7 +54,7 @@ public class SBP {
     public SBP(final String name) {
         this.name = name;
 
-        rfqQueueSubscription = rfqQueue.observeOn(Schedulers.newThread()).subscribe(new Action1<Payload>() {
+        rfqQueue.observeOn(Schedulers.newThread()).subscribe(new Action1<Payload>() {
             @Override
             public void call(Payload rfq) {
                 // Find RFQ manager
@@ -97,11 +98,11 @@ public class SBP {
     public void notifyLocalSales(final RFQ rfq, final RFQStateManager.RFQState state) {
         logger.debug(String.format("%d (%s) Notify all sales people RFQ%s", System.nanoTime(), name, rfq.getRFQId()));
         for (final SalesPerson salesPerson : getSalesPersons()) {
-            salesPerson.SalesPersonCommunication(rfq, state);
+            salesPerson.salesPersonCommunication(rfq, state);
         }
     }
 
-    synchronized public void MeshCommunications(final MeshPayload meshPayload) {
+    synchronized public void meshCommunications(final MeshPayload meshPayload) {
         logger.debug(String.format("%d (%s) Received from Mesh RFQ%s (%s) from %s (%s)", System.nanoTime(), name, meshPayload.getRFQId(), meshPayload.getState(), meshPayload.getSource().getName(), meshPayload.getTime()));
 
         // If we have never seen the RFQ before, add it to the list to work on
@@ -133,7 +134,7 @@ public class SBP {
         for (final SBP region : mesh) {
             try {
                 if (region != rfq.getOriginatingSBP()) {
-                    region.MeshCommunications(new MeshPayload((RFQ) rfq.clone(), state, this, time));
+                    region.meshCommunications(new MeshPayload((RFQ) rfq.clone(), state, this, time));
                 }
             } catch (CloneNotSupportedException e) {
                 e.printStackTrace();
@@ -142,6 +143,6 @@ public class SBP {
     }
 
     public void notifyOneRegion(final SBP source, final RFQ rfq, final RFQStateManager.RFQState state, long time) {
-        source.MeshCommunications(new MeshPayload(rfq, state, this, time));
+        source.meshCommunications(new MeshPayload(rfq, state, this, time));
     }
 }

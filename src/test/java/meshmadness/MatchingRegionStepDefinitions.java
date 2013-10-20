@@ -9,7 +9,6 @@ import meshmadness.actors.User;
 import meshmadness.domain.RFQ;
 import meshmadness.domain.RFQStateManager;
 import meshmadness.domain.SBP;
-import rx.Subscription;
 import rx.util.functions.Action1;
 import rx.util.functions.Func1;
 
@@ -22,22 +21,22 @@ import static junit.framework.Assert.assertEquals;
 
 public class MatchingRegionStepDefinitions {
     private class CountRegionIdStateRow {
-        private int count;
-        private String region;
-        private int id;
-        private String state;
-        private String filler;
+        public int count;
+        public String region;
+        public int id;
+        public String state;
+        public String filler;
     }
 
     private class RoleRegionRow {
-        private String role;
-        private String region;
+        public String role;
+        public String region;
     }
 
     private class UserMessageIdRow {
-        private String role;
-        private String message;
-        private int id;
+        public String role;
+        public String message;
+        public int id;
     }
 
     private final HashMap<String, SBP> sbps = new HashMap<>();
@@ -106,14 +105,13 @@ public class MatchingRegionStepDefinitions {
             latches[i] = new CountDownLatch(rows.get(i).count);
         }
 
-        final Subscription[] subscriptions = new Subscription[rows.size()];
         int rowCount = -1;
         for (final CountRegionIdStateRow row : rows) {
             rowCount++;
             final CountDownLatch latch = latches[rowCount];
 
             final SBP sbp = sbps.get(row.region);
-            subscriptions[rowCount] = sbp.subscribe().filter(new Func1<SBP.RFQSubjectHolder, Boolean>() {
+            sbp.subscribe().filter(new Func1<SBP.RFQSubjectHolder, Boolean>() {
                 @Override
                 public Boolean call(final SBP.RFQSubjectHolder holder) {
                     boolean retVal = false;
