@@ -88,7 +88,7 @@ public class SalesPerson {
         }
     }
 
-    public void SalesPersonCommunication(final RFQ rfq, final RFQStateManager.RFQState state) {
+    public void salesPersonCommunication(final RFQ rfq, final RFQStateManager.RFQState state) {
         if (state != RFQStateManager.RFQState.Complete) {
             logger.debug(String.format("%d (%s) received RFQ%s and puts into DI queue (%s)", System.nanoTime(), name, rfq.getRFQId(), state.toString()));
             dealerQueue.onNext(rfq);

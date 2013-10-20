@@ -23,10 +23,6 @@ public class User {
         return name;
     }
 
-    public void loginToSBP() {
-        sbp.join(sbp);
-    }
-
     public SBP getSBP() {
         return sbp;
     }

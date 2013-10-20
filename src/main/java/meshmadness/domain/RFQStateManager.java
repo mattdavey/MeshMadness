@@ -7,7 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class RFQStateManager {
-    public enum RFQState {StartRFQ, SendToDI, Pickup, Locked, Quote, Putback, Complete};
+    public enum RFQState {StartRFQ, SendToDI, Pickup, Locked, Quote, Putback, Complete}
 
     final Logger logger = LoggerFactory.getLogger(RFQStateManager.class);
 
