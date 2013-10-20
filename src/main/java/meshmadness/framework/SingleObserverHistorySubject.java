@@ -17,7 +17,7 @@ public class SingleObserverHistorySubject<T> extends Subject<T, T> {
     private final List<T> history = Collections.synchronizedList(new ArrayList<T>());
 
     public static <T> SingleObserverHistorySubject<T> create() {
-        return new SingleObserverHistorySubject<T>(new DelegateSubscriptionFunc<T>());
+        return new SingleObserverHistorySubject<>(new DelegateSubscriptionFunc<T>());
     }
 
     private SingleObserverHistorySubject(DelegateSubscriptionFunc<T> onSubscribe) {

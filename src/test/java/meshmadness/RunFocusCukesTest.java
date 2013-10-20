@@ -1,7 +1,9 @@
+package meshmadness;
 
 import cucumber.junit.Cucumber;
 import org.junit.runner.RunWith;
 
 @RunWith(Cucumber.class)
-public class RunAllCukesTest {
+@Cucumber.Options(tags = "@focus")
+public class RunFocusCukesTest {
 }
